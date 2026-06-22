@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>سامانه مدیریت فضای سبز شهری</title>
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+
+<!-- JSZip for KMZ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<!-- React + ReactDOM -->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+<!-- Recharts -->
+<script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
+
+<!-- Babel for JSX -->
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+<style>
+  body { font-family: Tahoma, 'Segoe UI', sans-serif; margin: 0; }
+  .leaflet-container { font-family: Tahoma, sans-serif; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .animate-spin { animation: spin 1s linear infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+  .animate-pulse { animation: pulse 2s ease-in-out infinite; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useMemo, useCallback } = React;
+const { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip,
+        ResponsiveContainer, CartesianGrid, Legend, LineChart, Line } = Recharts;
+
+// ── Supabase ──────────────────────────────────────────────────────────────────
+const SUPA_URL = "https://fiaevmpjfcvbqronzdyz.supabase.co";
+const SUPA_KEY = "sb_publishable_lEgDmnYl39VwCYiT0_yyYQ_uZjW70AE";
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+// ── Jalali ────────────────────────────────────────────────────────────────────
+function gToJ(gy,gm,gd){const g=[0,31,59,90,120,151,181,212,243,273,304,334];let jy=gy<=1600?0:979;gy-=gy<=1600?621:1600;const gy2=gm>2?gy+1:gy;let d=365*gy+Math.floor((gy2+3)/4)-Math.floor((gy2+99)/100)+Math.floor((gy2+399)/400)-80+gd+g[gm-1];jy+=33*Math.floor(d/12053);d%=12053;jy+=4*Math.floor(d/1461);d%=1461;if(d>365){jy+=Math.floor((d-1)/365);d=(d-1)%365;}let jm,jd;if(d<186){jm=1+Math.floor(d/31);jd=1+(d%31);}else{jm=7+Math.floor((d-186)/30);jd=1+((d-186)%30);}return[jy,jm,jd];}
+function todayJ(){const d=new Date();const[jy,jm,jd]=gToJ(d.getFullYear(),d.getMonth()+1,d.getDate());return`${jy}/${String(jm).padStart(2,"0")}/${String(jd).padStart(2,"0")}`;}
+function fN(n){if(n==null||isNaN(n))return"۰";return Number(n).toLocaleString("fa-IR");}
+function fMS(n){const num=Number(n)||0;const a=Math.abs(num);if(a>=1e9)return`${fN((a/1e9).toFixed(2))} م.ت`;if(a>=1e6)return`${fN((a/1e6).toFixed(1))} م`;return`${fN(num)} ریال`;}
+function mW(n){
+  const num=Number(n)||0;if(!num)return"صفر ریال";
+  const units=["","یک","دو","سه","چهار","پنج","شش","هفت","هشت","نه","ده","یازده","دوازده","سیزده","چهارده","پانزده","شانزده","هفده","هجده","نوزده"];
+  const tens=["","","بیست","سی","چهل","پنجاه","شصت","هفتاد","هشتاد","نود"];
+  function three(n){if(!n)return"";const h=Math.floor(n/100);const r=n%100;const p=[];if(h)p.push(["","یکصد","دویست","سیصد","چهارصد","پانصد","ششصد","هفتصد","هشتصد","نهصد"][h]);if(r<20)r&&p.push(units[r]);else{tens[Math.floor(r/10)]&&p.push(tens[Math.floor(r/10)]);units[r%10]&&p.push(units[r%10]);}return p.join(" و ");}
+  const scales=[["",1],["هزار",1e3],["میلیون",1e6],["میلیارد",1e9]];
+  const parts=[];let rem=Math.abs(Math.floor(num));const chunks=[];
+  for(let i=0;i<scales.length;i++){chunks.push([rem%1000,scales[i][0]]);rem=Math.floor(rem/1000);}
+  for(let i=chunks.length-1;i>=0;i--){const[v,name]=chunks[i];if(v){const t=three(v);if(t)parts.push(name?`${t} ${name}`:t);}}
+  return parts.join(" و ")+" ریال";
+}
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+const REGIONS=["منطقه ۱","منطقه ۲","منطقه ۳","منطقه ۴","منطقه ۵","منطقه ۶","منطقه ۷","منطقه ۸","منطقه ۹","منطقه ۱۰","منطقه ۱۱","ارتفاعات","سایر"];
+const STATUS={
+  "در حال اجرا":{color:"#f59e0b",bg:"#fef3c7",text:"#92400e"},
+  "تکمیل‌شده":{color:"#22c55e",bg:"#d1fae5",text:"#065f46"},
+  "متوقف‌شده":{color:"#ef4444",bg:"#fee2e2",text:"#991b1b"},
+};
+const ADMIN_USER="09176206606", ADMIN_PASS="82032";
+
+// ── DB helpers ────────────────────────────────────────────────────────────────
+function pFromRow(r,stmts){return{id:r.id,code:r.code,name:r.name,contractor:r.contractor,totalAmount:+r.total_amount||0,totalArea:+r.total_area||0,startDate:r.start_date||"",endDate:r.end_date||"",status:r.status||"در حال اجرا",description:r.description||"",regions:r.regions||[],mainRegion:r.main_region||"",otherLocation:r.other_location||"",heightRangeName:r.height_range_name||"",sortOrder:+r.sort_order||0,statements:(stmts||[]).map(s=>({id:s.id,number:s.number,date:s.date,amount:+s.amount||0,area:+s.area||0,description:s.description||""}))}}
+function pToRow(p){return{id:p.id,code:p.code,name:p.name,contractor:p.contractor,total_amount:p.totalAmount,total_area:p.totalArea,start_date:p.startDate||null,end_date:p.endDate||null,status:p.status,description:p.description||null,regions:p.regions||[],main_region:p.mainRegion||null,other_location:p.otherLocation||null,height_range_name:p.heightRangeName||null,sort_order:p.sortOrder||0}}
+function gFromRow(r){return{id:r.id,geojson:r.geojson,title:r.title||"",description:r.description||"",projectId:r.project_id||"",area:r.area||""}}
+function aFromRow(r){return{id:r.id,projectId:r.project_id,fromDate:r.from_date,daysAfter:+r.days_after||0,message:r.message||""}}
+
+function te(e){if(e)throw new Error(e.message||JSON.stringify(e));}
+
+const DB={
+  async loadAll(){
+    const[{data:pr,error:e1},{data:sr,error:e2},{data:gr,error:e3},{data:ar,error:e4}]=await Promise.all([
+      sb.from("projects").select("*").order("sort_order"),
+      sb.from("statements").select("*").order("number"),
+      sb.from("geometries").select("*"),
+      sb.from("alerts").select("*"),
+    ]);
+    te(e1);te(e2);te(e3);te(e4);
+    const sMap={};(sr||[]).forEach(s=>{(sMap[s.project_id]=sMap[s.project_id]||[]).push(s);});
+    return{projects:(pr||[]).map(r=>pFromRow(r,sMap[r.id])),geometries:(gr||[]).map(gFromRow),alerts:(ar||[]).map(aFromRow)};
+  },
+  async upsertProject(p){const{error}=await sb.from("projects").upsert(pToRow(p));te(error);},
+  async deleteProject(id){const{error}=await sb.from("projects").delete().eq("id",id);te(error);},
+  async replaceStmts(pid,stmts){
+    await sb.from("statements").delete().eq("project_id",pid);
+    if(stmts.length){const{error}=await sb.from("statements").insert(stmts.map(s=>({id:s.id,project_id:pid,number:s.number,date:s.date,amount:s.amount,area:s.area,description:s.description||null})));te(error);}
+  },
+  async upsertGeom(g){const{error}=await sb.from("geometries").upsert({id:g.id,geojson:g.geojson,title:g.title||null,description:g.description||null,project_id:g.projectId||null,area:g.area||null});te(error);},
+  async deleteGeom(id){const{error}=await sb.from("geometries").delete().eq("id",id);te(error);},
+  async upsertAlert(a){const{error}=await sb.from("alerts").upsert({id:a.id,project_id:a.projectId||null,from_date:a.fromDate,days_after:a.daysAfter,message:a.message||null});te(error);},
+  async deleteAlert(id){const{error}=await sb.from("alerts").delete().eq("id",id);te(error);},
+  async reorder(ps){await Promise.all(ps.map((p,i)=>sb.from("projects").update({sort_order:i}).eq("id",p.id)));},
+};
+
+// ── Compute ───────────────────────────────────────────────────────────────────
+function cp(p){const paid=p.statements.reduce((s,x)=>s+(+x.amount||0),0);const done=p.statements.reduce((s,x)=>s+(+x.area||0),0);return{paid,doneArea:done,remainingAmount:p.totalAmount-paid,remainingArea:p.totalArea-done,progress:p.totalArea>0?Math.min(100,(done/p.totalArea)*100):0};}
+
+// ── KML Parser ────────────────────────────────────────────────────────────────
+function parseKML(raw){
+  const text=(raw||"").replace(/^\uFEFF/,"").trim();
+  const results=[];
+  const c2a=s=>(s||"").replace(/\n/g," ").trim().split(/\s+/).filter(Boolean).map(t=>{const p=t.split(",");const ln=parseFloat(p[0]);const lt=parseFloat(p[1]);return(!isNaN(ln)&&!isNaN(lt))?[ln,lt]:null;}).filter(Boolean);
+  const strip=s=>(s||"").replace(/<!\[CDATA\[/g,"").replace(/\]\]>/g,"").replace(/<[^>]*>/g,"").trim();
+  const etag=(b,ts)=>{for(const t of ts){const m=b.match(new RegExp(`<(?:[\\w]+:)?${t}[^>]*>([\\s\\S]*?)<\\/(?:[\\w]+:)?${t}>`,"i"));if(m)return m[1];}return null;};
+  const re=/<Placemark[^>]*>([\s\S]*?)<\/Placemark>/gi;
+  let m,i=0;
+  while((m=re.exec(text))!==null){
+    const b=m[1];const name=strip(etag(b,["name"])||"")||`عارضه ${i+1}`;const desc=strip(etag(b,["description"])||"");
+    let gj=null;
+    const ptB=etag(b,["Point"]);const lsB=etag(b,["LineString"]);const pyB=etag(b,["Polygon"]);
+    if(ptB){const a=c2a(etag(ptB,["coordinates"]));if(a.length)gj={type:"Feature",geometry:{type:"Point",coordinates:a[0]},properties:{}};}
+    else if(lsB){const a=c2a(etag(lsB,["coordinates"]));if(a.length>=2)gj={type:"Feature",geometry:{type:"LineString",coordinates:a},properties:{}};}
+    else if(pyB){const a=c2a(etag(pyB,["coordinates"]));if(a.length>=3)gj={type:"Feature",geometry:{type:"Polygon",coordinates:[a]},properties:{}};}
+    if(gj)results.push({id:"kml"+Date.now()+"_"+i,geojson:gj,title:name,description:desc,projectId:"",area:""});
+    i++;
+  }
+  return results;
+}
+function calcArea(gj){if(!gj||gj.geometry?.type!=="Polygon")return null;const ring=gj.geometry.coordinates[0];if(!ring||ring.length<3)return null;let a=0;for(let i=0;i<ring.length-1;i++){const[ln1,lt1]=ring[i];const[ln2,lt2]=ring[i+1];a+=(ln2-ln1)*Math.PI/180*(2+Math.sin(lt1*Math.PI/180)+Math.sin(lt2*Math.PI/180));}return Math.abs(a*6371000*6371000/2/10000);}
+function calcLen(gj){if(!gj||gj.geometry?.type!=="LineString")return null;const c=gj.geometry.coordinates;let l=0;for(let i=0;i<c.length-1;i++){const[ln1,lt1]=c[i];const[ln2,lt2]=c[i+1];const dlt=(lt2-lt1)*Math.PI/180,dln=(ln2-ln1)*Math.PI/180;const a=Math.sin(dlt/2)**2+Math.cos(lt1*Math.PI/180)*Math.cos(lt2*Math.PI/180)*Math.sin(dln/2)**2;l+=6371000*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}return l;}
+
+// ── UI Components ─────────────────────────────────────────────────────────────
+function Btn({children,onClick,cls,disabled}){return <button onClick={onClick} disabled={disabled} className={cls}>{children}</button>;}
+function PBar({v}){return <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden"><div className="h-2 rounded-full bg-gradient-to-l from-emerald-500 to-green-400" style={{width:`${Math.min(100,v||0)}%`}}/></div>;}
+function RgnTags({regions,mainRegion}){return <div className="flex flex-wrap gap-1">{(regions||[]).map(r=><span key={r} className={`text-xs px-2 py-0.5 rounded-full border ${r===mainRegion?"bg-green-600 text-white border-green-600":"bg-green-50 text-green-700 border-green-200"}`}>{r}</span>)}</div>;}
+function SBadge({status}){const s=STATUS[status]||STATUS["در حال اجرا"];return <span className="inline-flex items-center text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap" style={{background:s.bg,color:s.text}}>{status}</span>;}
+function Modal({title,onClose,children,wide,full}){return <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-2 sm:p-4 overflow-y-auto" onClick={onClose}><div onClick={e=>e.stopPropagation()} className={`bg-white rounded-2xl shadow-xl w-full my-2 ${full?"max-w-4xl":wide?"max-w-2xl":"max-w-lg"}`}><div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 sticky top-0 bg-white rounded-t-2xl"><h3 className="font-bold text-gray-800 text-sm">{title}</h3><button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400">✕</button></div><div className="p-4">{children}</div></div></div>;}
+function MDisp({amount,label}){const n=+amount||0;if(!n)return null;return <div className="bg-green-50 border border-green-100 rounded-xl p-3"><div className="text-xs text-gray-500 mb-1">{label}</div><div className="font-bold text-sm text-gray-800">{n.toLocaleString("fa-IR")} ریال</div><div className="text-xs text-emerald-700">{mW(n)}</div></div>;}
+
+// ── OSM Map Component ─────────────────────────────────────────────────────────
+function OSMMap({projects,geometries,setGeometries,editable=false}){
+  const mapDiv=useRef(null);const mapRef=useRef(null);const lgRef=useRef(null);const lyrMap=useRef({});
+  const modeRef=useRef("none");const ptsRef=useRef([]);const tmpRef=useRef([]);const tmpSRef=useRef(null);
+  const [mode,setMode]=useState("none");const [pendGj,setPendGj]=useState(null);const [editId,setEditId]=useState(null);
+  const [showF,setShowF]=useState(false);const [form,setForm]=useState({projectId:"",title:"",description:"",area:""});
+  const [kmlErr,setKmlErr]=useState("");const [kmzLoad,setKmzLoad]=useState(false);const kmlRef=useRef(null);
+
+  const sColor=useCallback(pid=>{const p=projects.find(x=>x.id===pid);return p?STATUS[p.status]?.color||"#16a34a":"#16a34a";},[projects]);
+  const popHtml=useCallback(g=>{
+    const p=projects.find(x=>x.id===g.projectId);const t=g.geojson?.geometry?.type;
+    const aH=t==="Polygon"?calcArea(g.geojson):null;const lM=t==="LineString"?calcLen(g.geojson):null;
+    const col=STATUS[p?.status]?.color||"#16a34a";
+    return`<div style="font-family:Tahoma,sans-serif;direction:rtl;text-align:right;min-width:220px;line-height:1.9;font-size:13px">
+      <div style="font-size:15px;font-weight:bold;color:#065f46">${g.title||"بدون عنوان"}</div>
+      ${p?`<div style="background:#f0fdf4;border-radius:8px;padding:6px 8px;margin:6px 0">
+        <div style="font-weight:600;color:#059669">📁 ${p.name}</div>
+        <div style="color:#555;font-size:12px">پیمانکار: ${p.contractor}</div>
+        <span style="padding:2px 8px;border-radius:20px;font-size:11px;font-weight:bold;background:${col}22;color:${col}">${p.status}</span>
+      </div>`:""}
+      ${g.area?`<div style="font-size:12px">📐 مساحت: <b>${g.area} هکتار</b></div>`:""}
+      ${aH?`<div style="font-size:12px">📐 محاسبه‌شده: <b>${aH.toFixed(3)} ha</b></div>`:""}
+      ${lM?`<div style="font-size:12px">📏 طول: <b>${(lM/1000).toFixed(3)} km</b></div>`:""}
+      ${p?.totalAmount?`<div style="font-size:12px">💰 قرارداد: <b>${fMS(p.totalAmount)}</b></div>`:""}
+      ${g.description?`<div style="color:#374151;font-size:12px;border-top:1px solid #e5e7eb;padding-top:5px">💬 ${g.description}</div>`:""}
+    </div>`;
+  },[projects]);
+
+  const renderGeom=useCallback((L,lg,g)=>{
+    try{
+      const col=sColor(g.projectId);const gj=g.geojson;const t=gj?.geometry?.type;let layer;
+      if(t==="Point"){const[ln,lt]=gj.geometry.coordinates;layer=L.circleMarker([lt,ln],{radius:12,fillColor:col,fillOpacity:.9,color:"#fff",weight:2.5});}
+      else if(t==="LineString"){layer=L.polyline(gj.geometry.coordinates.map(([ln,lt])=>[lt,ln]),{color:col,weight:5});}
+      else if(t==="Polygon"){layer=L.polygon(gj.geometry.coordinates[0].map(([ln,lt])=>[lt,ln]),{color:col,fillColor:col,fillOpacity:.2,weight:3});}
+      if(!layer)return;
+      layer._gId=g.id;layer.bindPopup(popHtml(g),{maxWidth:300});
+      if(editable){layer.on("click",e=>{L.DomEvent.stopPropagation(e);setEditId(g.id);setForm({projectId:g.projectId||"",title:g.title||"",description:g.description||"",area:g.area||""});setPendGj(null);setShowF(true);});}
+      lg.addLayer(layer);lyrMap.current[g.id]=layer;
+    }catch(e){console.error(e);}
+  },[sColor,popHtml,editable]);
+
+  useEffect(()=>{
+    if(!mapDiv.current||mapRef.current)return;
+    const L=window.L;
+    const map=L.map(mapDiv.current).setView([29.5918,52.5836],13);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:'© OpenStreetMap',maxZoom:19}).addTo(map);
+    const lg=L.layerGroup().addTo(map);lgRef.current=lg;mapRef.current=map;
+    if(editable){
+      map.on("click",e=>{
+        const m=modeRef.current;if(m==="none")return;
+        if(m==="point"){setPendGj({type:"Feature",geometry:{type:"Point",coordinates:[e.latlng.lng,e.latlng.lat]},properties:{}});setEditId(null);setForm({projectId:"",title:"",description:"",area:""});setShowF(true);modeRef.current="none";setMode("none");map.getContainer().style.cursor="";return;}
+        const pts=ptsRef.current;pts.push([e.latlng.lat,e.latlng.lng]);
+        const c=L.circleMarker([e.latlng.lat,e.latlng.lng],{radius:5,color:"#16a34a",fillColor:"#dcfce7",fillOpacity:1,weight:2}).addTo(map);tmpRef.current.push(c);
+        if(tmpSRef.current)map.removeLayer(tmpSRef.current);
+        if(pts.length>1){const sh=m==="polygon"?L.polygon(pts,{color:"#16a34a",fillOpacity:.15,dashArray:"8 4"}):L.polyline(pts,{color:"#16a34a",weight:3,dashArray:"8 4"});sh.addTo(map);tmpSRef.current=sh;}
+      });
+    }
+    return()=>{try{map.remove();}catch(_){}mapRef.current=null;lgRef.current=null;lyrMap.current={};}
+  },[editable]);
+
+  useEffect(()=>{modeRef.current=mode;if(!mapRef.current)return;mapRef.current.getContainer().style.cursor=mode!=="none"?"crosshair":"";if(mode!=="none"){tmpRef.current.forEach(l=>mapRef.current.removeLayer(l));tmpRef.current=[];if(tmpSRef.current){mapRef.current.removeLayer(tmpSRef.current);tmpSRef.current=null;}ptsRef.current=[];}},[mode]);
+
+  useEffect(()=>{
+    if(!mapRef.current||!lgRef.current)return;
+    const L=window.L,lg=lgRef.current;
+    geometries.forEach(g=>{if(!lyrMap.current[g.id])renderGeom(L,lg,g);else{const l=lyrMap.current[g.id];if(l?.setPopupContent)l.setPopupContent(popHtml(g));}});
+    Object.keys(lyrMap.current).forEach(id=>{if(!geometries.find(g=>g.id===id)){lg.removeLayer(lyrMap.current[id]);delete lyrMap.current[id];}});
+  },[geometries,renderGeom,popHtml]);
+
+  const finishDraw=()=>{
+    if(!mapRef.current)return;const m=modeRef.current;const pts=[...ptsRef.current];
+    tmpRef.current.forEach(l=>mapRef.current.removeLayer(l));tmpRef.current=[];
+    if(tmpSRef.current){mapRef.current.removeLayer(tmpSRef.current);tmpSRef.current=null;}ptsRef.current=[];
+    if(pts.length<2){setMode("none");modeRef.current="none";mapRef.current.getContainer().style.cursor="";return;}
+    const coords=pts.map(([lt,ln])=>[ln,lt]);
+    const gj=m==="line"?{type:"Feature",geometry:{type:"LineString",coordinates:coords},properties:{}}:{type:"Feature",geometry:{type:"Polygon",coordinates:[[...coords,coords[0]]]},properties:{}};
+    setPendGj(gj);setEditId(null);setForm({projectId:"",title:"",description:"",area:""});setShowF(true);
+    modeRef.current="none";setMode("none");mapRef.current.getContainer().style.cursor="";
+  };
+  const cancelDraw=()=>{if(mapRef.current){tmpRef.current.forEach(l=>mapRef.current.removeLayer(l));if(tmpSRef.current)mapRef.current.removeLayer(tmpSRef.current);}tmpRef.current=[];tmpSRef.current=null;ptsRef.current=[];setMode("none");};
+  const saveFeat=async()=>{
+    if(pendGj){const g={id:"geom"+Date.now(),geojson:pendGj,...form};setGeometries(prev=>[...prev,g]);setShowF(false);setPendGj(null);setEditId(null);setForm({projectId:"",title:"",description:"",area:""});DB.upsertGeom(g).catch(console.error);}
+    else if(editId){setGeometries(prev=>prev.map(g=>g.id===editId?{...g,...form}:g));const upd=geometries.find(g=>g.id===editId);setShowF(false);setEditId(null);setForm({projectId:"",title:"",description:"",area:""});if(upd)DB.upsertGeom({...upd,...form}).catch(console.error);}
+  };
+  const delGeom=async()=>{if(!editId)return;const id=editId;const l=lyrMap.current[id];if(l&&lgRef.current)lgRef.current.removeLayer(l);delete lyrMap.current[id];setGeometries(prev=>prev.filter(g=>g.id!==id));setShowF(false);setEditId(null);DB.deleteGeom(id).catch(console.error);};
+  const procKML=text=>{try{const items=parseKML(text);if(!items.length){setKmlErr("⚠️ هیچ عارضه‌ای پیدا نشد.");return;}setGeometries(prev=>[...prev,...items]);setKmlErr("");Promise.all(items.map(g=>DB.upsertGeom(g))).catch(console.error);alert(`✅ ${items.length} عارضه بارگذاری شد.`);}catch(e){setKmlErr("❌ خطا: "+e.message);}};
+  const handleKML=e=>{const f=e.target.files?.[0];if(!f)return;setKmlErr("");const lower=f.name.toLowerCase();
+    if(lower.endsWith(".kmz")){setKmzLoad(true);(async()=>{try{const z=await JSZip.loadAsync(await f.arrayBuffer());let entry=null;z.forEach((p,e)=>{if(!entry&&p.toLowerCase().endsWith(".kml"))entry=e;});if(!entry){setKmlErr("❌ KML داخل KMZ پیدا نشد.");return;}procKML(await entry.async("text"));}catch(e){setKmlErr("❌ "+e.message);}setKmzLoad(false);})();}
+    else{const r=new FileReader();r.onload=ev=>procKML(ev.target.result);r.onerror=()=>setKmlErr("❌ خطا");r.readAsText(f,"UTF-8");}
+    e.target.value="";};
+
+  const inp="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400";
+  return(
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-gradient-to-l from-green-700 to-emerald-600 text-white px-4 py-3 flex items-center justify-between flex-wrap gap-2">
+        <div><div className="font-bold text-sm">🗺️ نقشه پروژه‌های فضای سبز</div><div className="text-xs text-green-100">OpenStreetMap — شیراز</div></div>
+        <div className="flex gap-2 flex-wrap text-xs">{Object.entries(STATUS).map(([s,i])=><span key={s} className="flex items-center gap-1 bg-white/15 px-2 py-1 rounded-lg"><span className="w-2 h-2 rounded-full inline-block" style={{background:i.color}}></span>{s}</span>)}</div>
+      </div>
+      {editable&&<div className="bg-gray-50 border-b border-gray-100 px-3 py-2.5 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-bold text-gray-500">ترسیم:</span>
+        {[["point","📍","نقطه"],["line","〰️","خط"],["polygon","⬡","پلیگون"]].map(([m,icon,label])=>(
+          <button key={m} onClick={()=>setMode(d=>d===m?"none":m)} className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border-2 text-xs font-bold transition-all ${mode===m?"bg-green-600 border-green-600 text-white":"bg-white border-gray-200 text-gray-600 hover:border-green-400"}`}><span>{icon}</span>{label}</button>
+        ))}
+        <button onClick={()=>kmlRef.current?.click()} disabled={kmzLoad} className="flex items-center gap-1.5 px-3 py-2 rounded-xl border-2 border-dashed border-blue-300 bg-blue-50 text-blue-600 text-xs font-bold">
+          {kmzLoad?<><div className="w-3.5 h-3.5 border-2 border-blue-400 border-t-blue-700 rounded-full animate-spin"></div>…</>:<>📁 KML/KMZ</>}
+        </button>
+        <input ref={kmlRef} type="file" accept=".kml,.kmz" className="hidden" onChange={handleKML}/>
+        {kmlErr&&<div className="text-xs text-red-600 bg-red-50 border border-red-200 px-3 py-1.5 rounded-xl">{kmlErr}</div>}
+        {mode!=="none"&&<>
+          <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-xl text-xs">{mode==="point"?"کلیک روی نقشه":"کلیک = نقطه اضافه"}</div>
+          {(mode==="line"||mode==="polygon")&&<button onClick={finishDraw} className="px-3 py-1.5 rounded-xl bg-green-600 text-white text-xs font-bold">✅ پایان</button>}
+          <button onClick={cancelDraw} className="px-3 py-1.5 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs font-bold">✕ لغو</button>
+        </>}
+      </div>}
+      <div style={{height:460}}>
+        <div ref={mapDiv} style={{height:"100%",width:"100%"}} dir="ltr"/>
+      </div>
+      {showF&&editable&&<div className="border-t-2 border-green-200 bg-green-50 p-4">
+        <div className="flex items-center justify-between mb-3"><div className="font-bold text-green-800 text-sm">{editId?"✏️ ویرایش عارضه":"✅ ثبت عارضه جدید"}</div><button onClick={()=>{setShowF(false);setPendGj(null);setEditId(null);}} className="text-gray-400">✕</button></div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div><label className="text-xs font-bold text-gray-600 block mb-1">پروژه مرتبط</label><select className={inp} value={form.projectId} onChange={e=>setForm({...form,projectId:e.target.value})}><option value="">بدون پروژه</option>{projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+          <div><label className="text-xs font-bold text-gray-600 block mb-1">عنوان *</label><input className={inp} value={form.title} onChange={e=>setForm({...form,title:e.target.value})}/></div>
+          <div><label className="text-xs font-bold text-gray-600 block mb-1">مساحت (هکتار)</label><input className={inp} value={form.area} onChange={e=>setForm({...form,area:e.target.value})}/></div>
+          <div><label className="text-xs font-bold text-gray-600 block mb-1">توضیحات</label><input className={inp} value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/></div>
+        </div>
+        <div className="flex gap-2 justify-end mt-3">
+          {editId&&<button onClick={delGeom} className="flex items-center gap-1 px-4 py-2 rounded-xl border-2 border-red-200 text-red-600 text-sm font-bold hover:bg-red-50">🗑️ حذف</button>}
+          <button onClick={()=>{setShowF(false);setPendGj(null);setEditId(null);}} className="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm">انصراف</button>
+          <button onClick={saveFeat} className="px-5 py-2 rounded-xl bg-green-600 text-white text-sm font-bold hover:bg-green-700">💾 ذخیره</button>
+        </div>
+      </div>}
+      {geometries.length>0&&<div className="border-t border-gray-100 p-3">
+        <div className="text-xs font-bold text-gray-600 mb-2">عوارض ثبت‌شده ({geometries.length})</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">{geometries.map(g=>{const p=projects.find(x=>x.id===g.projectId);const t=g.geojson?.geometry?.type;const icon=t==="Point"?"📍":t==="LineString"?"〰️":"⬡";return<div key={g.id} className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2"><span className="text-lg shrink-0">{icon}</span><div className="flex-1 min-w-0"><div className="font-bold text-gray-800 text-xs truncate">{g.title||"—"}</div>{p&&<div className="text-xs text-emerald-600 truncate">{p.name}</div>}</div>{editable&&<button onClick={()=>{setEditId(g.id);setForm({projectId:g.projectId||"",title:g.title||"",description:g.description||"",area:g.area||""});setPendGj(null);setShowF(true);}} className="p-1 rounded bg-white border border-gray-200 text-gray-400 hover:text-green-600">✎</button>}</div>;})}
+        </div>
+      </div>}
+    </div>
+  );
+}
+
+// ── Project Form ──────────────────────────────────────────────────────────────
+function ProjectForm({initial,onSave,onCancel}){
+  const[tab,setTab]=useState("info");
+  const[form,setForm]=useState(initial?{...initial,statements:initial.statements||[]}:{name:"",contractor:"",totalAmount:"",totalArea:"",startDate:"",endDate:"",status:"در حال اجرا",description:"",regions:[],mainRegion:"",otherLocation:"",heightRangeName:"",statements:[]});
+  const[stForm,setStForm]=useState({number:"",date:"",amount:"",area:"",description:""});
+  const[stErr,setStErr]=useState("");const[editStIdx,setEditStIdx]=useState(null);
+  const inp="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400";
+  const lbl="text-xs font-semibold text-gray-600 block mb-1";
+  const toggleR=r=>setForm(f=>{const has=f.regions.includes(r);const regions=has?f.regions.filter(x=>x!==r):[...f.regions,r];let m=f.mainRegion;if(has&&m===r)m=regions[0]||"";if(!has&&!m)m=r;return{...f,regions,mainRegion:m};});
+  const c=useMemo(()=>{const paid=form.statements.reduce((s,x)=>s+(+x.amount||0),0);const done=form.statements.reduce((s,x)=>s+(+x.area||0),0);return{paid,done,rem:+form.totalAmount-paid,remA:+form.totalArea-done,prog:+form.totalArea>0?Math.min(100,(done/+form.totalArea)*100):0};},[form.statements,form.totalAmount,form.totalArea]);
+  const addSt=()=>{
+    setStErr("");if(!stForm.amount||!stForm.area){setStErr("مبلغ و هکتار الزامی است.");return;}
+    const na=+stForm.amount,nr=+stForm.area;
+    const exP=editStIdx!==null?form.statements.filter((_,i)=>i!==editStIdx).reduce((s,x)=>s+(+x.amount),0):c.paid;
+    const exA=editStIdx!==null?form.statements.filter((_,i)=>i!==editStIdx).reduce((s,x)=>s+(+x.area),0):c.done;
+    if(exP+na>+form.totalAmount){setStErr("⚠️ از مبلغ کل تجاوز می‌کند.");return;}
+    if(exA+nr>+form.totalArea){setStErr("⚠️ از هکتار کل تجاوز می‌کند.");return;}
+    if(form.statements.length>=10&&editStIdx===null){setStErr("حداکثر ۱۰ صورت‌وضعیت.");return;}
+    const st={id:"s"+Date.now(),number:+stForm.number||form.statements.length+1,date:stForm.date||todayJ(),amount:na,area:nr,description:stForm.description};
+    if(editStIdx!==null){const arr=[...form.statements];arr[editStIdx]=st;setForm(f=>({...f,statements:arr}));setEditStIdx(null);}
+    else setForm(f=>({...f,statements:[...f.statements,st]}));
+    setStForm({number:"",date:"",amount:"",area:"",description:""});
+  };
+  const submit=()=>{if(!form.name||!form.contractor||!form.totalAmount||!form.totalArea||!form.regions.length){alert("فیلدهای ضروری را تکمیل کنید.");return;}onSave({...form,totalAmount:+form.totalAmount,totalArea:+form.totalArea});};
+  return(
+    <div>
+      <div className="flex border-b border-gray-200 mb-4 gap-1">
+        {[["info","📋 اطلاعات"],["statements","📄 صورت‌وضعیت‌ها"],["summary","📊 خلاصه"]].map(([k,l])=>(
+          <button key={k} onClick={()=>setTab(k)} className={`px-3 py-2 text-xs font-bold rounded-t-xl border-b-2 transition ${tab===k?"border-green-600 text-green-700 bg-green-50":"border-transparent text-gray-500"}`}>{l}</button>
+        ))}
+      </div>
+      {tab==="info"&&<div className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div><label className={lbl}>نام پروژه *</label><input className={inp} value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></div>
+          <div><label className={lbl}>پیمانکار *</label><input className={inp} value={form.contractor} onChange={e=>setForm({...form,contractor:e.target.value})}/></div>
+          <div><label className={lbl}>مبلغ کل (ریال) *</label><input type="number" className={inp} value={form.totalAmount} onChange={e=>setForm({...form,totalAmount:e.target.value})}/>{form.totalAmount&&+form.totalAmount>0&&<div className="text-xs text-emerald-700 bg-green-50 rounded-lg px-2 py-1 mt-1">{mW(form.totalAmount)}</div>}</div>
+          <div><label className={lbl}>مساحت (هکتار) *</label><input type="number" className={inp} value={form.totalArea} onChange={e=>setForm({...form,totalArea:e.target.value})}/></div>
+          <div><label className={lbl}>تاریخ شروع</label><input className={inp} placeholder="1403/01/01" value={form.startDate} onChange={e=>setForm({...form,startDate:e.target.value})}/></div>
+          <div><label className={lbl}>تاریخ پایان</label><input className={inp} placeholder="1403/12/29" value={form.endDate} onChange={e=>setForm({...form,endDate:e.target.value})}/></div>
+          <div className="sm:col-span-2"><label className={lbl}>وضعیت</label><select className={inp} value={form.status} onChange={e=>setForm({...form,status:e.target.value})}>{Object.keys(STATUS).map(s=><option key={s}>{s}</option>)}</select></div>
+        </div>
+        <div><label className={lbl}>توضیحات</label><textarea rows={2} className={inp} value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/></div>
+        <div>
+          <label className={lbl}>مناطق اجرایی * (چندانتخابی)</label>
+          <div className="flex flex-wrap gap-1.5 mb-2">{REGIONS.map(r=><button key={r} type="button" onClick={()=>toggleR(r)} className={`text-xs px-2.5 py-1 rounded-full border transition ${form.regions.includes(r)?"bg-green-600 text-white border-green-600":"bg-white text-gray-600 border-gray-200"}`}>{r}</button>)}</div>
+          {form.regions.length>0&&<div className="bg-green-50 rounded-xl p-3 space-y-2"><RgnTags regions={form.regions} mainRegion={form.mainRegion}/><div className="flex items-center gap-2"><span className="text-xs text-gray-600">منطقه اصلی:</span><select className="border border-gray-200 rounded-lg px-2 py-1 text-xs" value={form.mainRegion} onChange={e=>setForm({...form,mainRegion:e.target.value})}>{form.regions.map(r=><option key={r}>{r}</option>)}</select></div></div>}
+          {form.regions.includes("سایر")&&<input className={`mt-2 ${inp}`} placeholder="محل دقیق" value={form.otherLocation} onChange={e=>setForm({...form,otherLocation:e.target.value})}/>}
+          {form.regions.includes("ارتفاعات")&&<input className={`mt-2 ${inp}`} placeholder="نام محدوده ارتفاعات" value={form.heightRangeName} onChange={e=>setForm({...form,heightRangeName:e.target.value})}/>}
+        </div>
+      </div>}
+      {tab==="statements"&&<div className="space-y-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+          <div className="bg-blue-50 rounded-xl p-3 text-center"><div className="text-gray-500">تعداد</div><div className="font-bold text-blue-700 text-lg">{form.statements.length}/۱۰</div></div>
+          <div className="bg-green-50 rounded-xl p-3 text-center"><div className="text-gray-500">پرداختی</div><div className="font-bold text-green-700">{fMS(c.paid)}</div></div>
+          <div className="bg-amber-50 rounded-xl p-3 text-center"><div className="text-gray-500">باقی مبلغ</div><div className="font-bold text-amber-700">{fMS(c.rem)}</div></div>
+          <div className="bg-emerald-50 rounded-xl p-3 text-center"><div className="text-gray-500">پیشرفت</div><div className="font-bold text-emerald-700">{c.prog.toFixed(0)}٪</div></div>
+        </div>
+        <PBar v={c.prog}/>
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-3">
+          <div className="font-bold text-gray-700 text-sm">{editStIdx!==null?"✏️ ویرایش":"➕ افزودن"}</div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div><label className={lbl}>شماره</label><input type="number" className={inp} value={stForm.number} onChange={e=>setStForm({...stForm,number:e.target.value})}/></div>
+            <div><label className={lbl}>تاریخ</label><input className={inp} placeholder={todayJ()} value={stForm.date} onChange={e=>setStForm({...stForm,date:e.target.value})}/></div>
+            <div><label className={lbl}>مبلغ (ریال)</label><input type="number" className={inp} value={stForm.amount} onChange={e=>setStForm({...stForm,amount:e.target.value})}/>{stForm.amount&&+stForm.amount>0&&<div className="text-xs text-emerald-700 mt-0.5">{mW(stForm.amount)}</div>}</div>
+            <div><label className={lbl}>هکتار</label><input type="number" className={inp} value={stForm.area} onChange={e=>setStForm({...stForm,area:e.target.value})}/></div>
+          </div>
+          <div><label className={lbl}>توضیحات</label><input className={inp} value={stForm.description} onChange={e=>setStForm({...stForm,description:e.target.value})}/></div>
+          {stErr&&<div className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{stErr}</div>}
+          <div className="flex gap-2 justify-end">{editStIdx!==null&&<button onClick={()=>{setEditStIdx(null);setStForm({number:"",date:"",amount:"",area:"",description:""});}} className="px-3 py-1.5 rounded-xl border border-gray-200 text-gray-600 text-xs">لغو</button>}<button onClick={addSt} className="px-4 py-1.5 rounded-xl bg-green-600 text-white text-xs font-bold">{editStIdx!==null?"ذخیره":"افزودن"}</button></div>
+        </div>
+        {form.statements.length>0&&<div className="overflow-x-auto"><table className="w-full text-xs"><thead><tr className="text-gray-400 border-b">{["#","تاریخ","مبلغ","به حروف","هکتار","توضیحات",""].map(h=><th key={h} className="py-2 text-right px-1">{h}</th>)}</tr></thead><tbody>{form.statements.map((s,i)=><tr key={s.id} className={i%2===0?"bg-white":"bg-gray-50/50"}><td className="py-2 px-1 font-bold">{s.number}</td><td className="py-2 px-1 whitespace-nowrap">{s.date}</td><td className="py-2 px-1">{s.amount.toLocaleString("fa-IR")}</td><td className="py-2 px-1 text-emerald-700 max-w-32 truncate">{mW(s.amount)}</td><td className="py-2 px-1">{s.area}</td><td className="py-2 px-1 text-gray-500">{s.description}</td><td className="py-2 px-1"><div className="flex gap-1"><button onClick={()=>{setForm(f=>({...f,statements:[...f.statements]}));setStForm({number:s.number,date:s.date,amount:s.amount,area:s.area,description:s.description});setEditStIdx(i);setTab("statements");}} className="p-1 rounded bg-blue-50 text-blue-500">✎</button><button onClick={()=>setForm(f=>({...f,statements:f.statements.filter((_,j)=>j!==i)}))} className="p-1 rounded bg-red-50 text-red-500">🗑</button></div></td></tr>)}</tbody><tfoot><tr className="bg-green-50 font-bold text-green-800"><td className="py-2 px-1" colSpan={2}>جمع</td><td className="py-2 px-1">{c.paid.toLocaleString("fa-IR")}</td><td className="py-2 px-1 text-xs">{mW(c.paid)}</td><td className="py-2 px-1">{c.done}</td><td colSpan={2}></td></tr></tfoot></table></div>}
+      </div>}
+      {tab==="summary"&&<div className="space-y-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <MDisp amount={form.totalAmount} label="مبلغ کل قرارداد"/>
+        <MDisp amount={c.paid} label="مجموع پرداخت‌شده"/>
+        <MDisp amount={c.rem} label="مبلغ باقی‌مانده"/>
+        <div className="bg-blue-50 border border-blue-100 rounded-xl p-3"><div className="text-xs text-gray-500">هکتار</div><div className="text-sm font-bold">{fN(form.totalArea)} کل | {fN(c.done)} انجام | {fN(c.remA)} باقی</div><PBar v={c.prog}/></div>
+      </div>}
+      <div className="flex gap-2 justify-end mt-4 pt-3 border-t border-gray-100">
+        <button onClick={onCancel} className="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm">انصراف</button>
+        <button onClick={submit} className="px-6 py-2 rounded-xl bg-green-600 text-white text-sm font-bold hover:bg-green-700">💾 ذخیره</button>
+      </div>
+    </div>
+  );
+}
+
+// ── Charts ────────────────────────────────────────────────────────────────────
+function Charts({projects}){
+  const rs=useMemo(()=>{const m={};REGIONS.forEach(r=>(m[r]={region:r,count:0,amount:0,paid:0,area:0,done:0}));projects.forEach(p=>{const c=cp(p);p.regions.forEach(r=>{if(!m[r])return;m[r].count++;m[r].amount+=p.totalAmount;m[r].paid+=c.paid;m[r].area+=p.totalArea;m[r].done+=c.doneArea;});});return Object.values(m).filter(x=>x.count>0);},[projects]);
+  const sd=useMemo(()=>{const m={};Object.keys(STATUS).forEach(s=>(m[s]=0));projects.forEach(p=>(m[p.status]=(m[p.status]||0)+1));return Object.entries(m).map(([n,v])=>({name:n,value:v,color:STATUS[n].color}));},[projects]);
+  const cs=useMemo(()=>{const m={};projects.forEach(p=>{const c=cp(p);if(!m[p.contractor])m[p.contractor]={name:p.contractor,amount:0,done:0};m[p.contractor].amount+=p.totalAmount;m[p.contractor].done+=c.doneArea;});return Object.values(m);},[projects]);
+  const cc=(t,ch)=><div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4"><h4 className="font-bold text-gray-700 text-sm mb-2">{t}</h4>{ch}</div>;
+  return <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    {cc("تعداد پروژه به تفکیک مناطق",<ResponsiveContainer width="100%" height={180}><BarChart data={rs}><CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/><XAxis dataKey="region" tick={{fontSize:9}}/><YAxis tick={{fontSize:10}}/><Tooltip/><Bar dataKey="count" fill="#22c55e" radius={[6,6,0,0]}/></BarChart></ResponsiveContainer>)}
+    {cc("توزیع وضعیت",<ResponsiveContainer width="100%" height={180}><PieChart><Pie data={sd} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={60} label={d=>d.name}>{sd.map((s,i)=><Cell key={i} fill={s.color}/>)}</Pie><Tooltip/></PieChart></ResponsiveContainer>)}
+    {cc("مبالغ به تفکیک مناطق",<ResponsiveContainer width="100%" height={180}><BarChart data={rs}><CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/><XAxis dataKey="region" tick={{fontSize:9}}/><YAxis tick={{fontSize:10}}/><Tooltip formatter={v=>fMS(v)}/><Legend/><Bar dataKey="amount" name="کل" fill="#86efac" radius={[6,6,0,0]}/><Bar dataKey="paid" name="پرداختی" fill="#16a34a" radius={[6,6,0,0]}/></BarChart></ResponsiveContainer>)}
+    {cc("مقایسه پیمانکاران",<ResponsiveContainer width="100%" height={180}><BarChart data={cs}><CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/><XAxis dataKey="name" tick={{fontSize:9}}/><YAxis tick={{fontSize:10}}/><Tooltip/><Bar dataKey="done" name="هکتار" fill="#059669" radius={[6,6,0,0]}/></BarChart></ResponsiveContainer>)}
+  </div>;
+}
+
+// ── Reports ───────────────────────────────────────────────────────────────────
+function Reports({projects}){
+  const[ft,setFt]=useState("all");const[fv,setFv]=useState("");
+  const filtered=useMemo(()=>{if(ft==="all"||!fv)return projects;if(ft==="region")return projects.filter(p=>p.regions.includes(fv));if(ft==="contractor")return projects.filter(p=>p.contractor===fv);if(ft==="status")return projects.filter(p=>p.status===fv);return projects;},[projects,ft,fv]);
+  const contractors=[...new Set(projects.map(p=>p.contractor))];
+  const tot=filtered.reduce((a,p)=>{const c=cp(p);a.amount+=p.totalAmount;a.paid+=c.paid;a.area+=p.totalArea;a.done+=c.doneArea;a.rem+=c.remainingAmount;a.stCount+=p.statements.length;return a;},{amount:0,paid:0,area:0,done:0,rem:0,stCount:0});
+  const handlePrint=()=>{
+    const css=`body{font-family:Tahoma,sans-serif;direction:rtl;padding:20px;font-size:12px}h1{color:#065f46}table{width:100%;border-collapse:collapse}th{background:#f0fdf4;color:#065f46;padding:7px;text-align:right;border:1px solid #bbf7d0}td{padding:6px;border:1px solid #e5e7eb}.prog{background:#e5e7eb;border-radius:4px;height:6px}.prog-fill{background:#16a34a;height:6px;border-radius:4px}`;
+    const rows=filtered.map(p=>{const c=cp(p);const stRows=p.statements.map(s=>`<tr><td>${s.number}</td><td>${s.date}</td><td>${s.amount.toLocaleString("fa-IR")}</td><td style="font-size:10px;color:#059669">${mW(s.amount)}</td><td>${s.area}</td><td>${s.description||"—"}</td></tr>`).join("");return`<div style="page-break-inside:avoid;margin-bottom:24px;border:1px solid #d1fae5;border-radius:10px;padding:14px"><b style="font-size:15px;color:#065f46">${p.name}</b> <span style="font-size:11px;color:#888">${p.code}</span><br/><b>پیمانکار:</b> ${p.contractor} | <b>وضعیت:</b> ${p.status} | <b>مناطق:</b> ${p.regions.join("، ")}<br/><b>مبلغ کل:</b> ${p.totalAmount.toLocaleString("fa-IR")} ریال — ${mW(p.totalAmount)}<br/><b>پرداختی:</b> ${c.paid.toLocaleString("fa-IR")} | <b>باقی:</b> ${c.remainingAmount.toLocaleString("fa-IR")} | <b>پیشرفت:</b> ${c.progress.toFixed(1)}٪<div class="prog" style="margin:8px 0"><div class="prog-fill" style="width:${c.progress}%"></div></div>${p.statements.length?`<table style="margin-top:8px"><thead><tr><th>#</th><th>تاریخ</th><th>مبلغ</th><th>به حروف</th><th>هکتار</th><th>توضیحات</th></tr></thead><tbody>${stRows}</tbody></table>`:""}</div>`;}).join("");
+    const w=window.open("","_blank","width=900,height=700");
+    w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>گزارش</title><style>${css}</style></head><body><h1>🌳 گزارش فضای سبز شهری — ${todayJ()}</h1><p>تعداد پروژه: ${filtered.length} | مجموع: ${fMS(tot.amount)} | پرداختی: ${fMS(tot.paid)}</p>${rows}</body></html>`);
+    w.document.close();setTimeout(()=>w.print(),600);
+  };
+  const handleExcel=()=>{
+    const BOM="\uFEFF";
+    const rows=[["کد","نام","پیمانکار","وضعیت","مناطق","مبلغ کل","مبلغ (حروف)","پرداختی","باقی","پیشرفت","#ص.وضعیت","توضیحات","ش.ص.و","تاریخ","مبلغ ص.و","هکتار ص.و","توضیحات ص.و"]];
+    filtered.forEach(p=>{const c=cp(p);if(!p.statements.length)rows.push([p.code,p.name,p.contractor,p.status,p.regions.join("-"),p.totalAmount,mW(p.totalAmount),c.paid,c.remainingAmount,c.progress.toFixed(1)+"%",0,p.description||"","","","",""]);
+    else p.statements.forEach((s,i)=>rows.push([i===0?p.code:"",i===0?p.name:"",i===0?p.contractor:"",i===0?p.status:"",i===0?p.regions.join("-"):"",i===0?p.totalAmount:"",i===0?mW(p.totalAmount):"",i===0?c.paid:"",i===0?c.remainingAmount:"",i===0?c.progress.toFixed(1)+"%":"",i===0?p.statements.length:"",i===0?(p.description||""):"",s.number,s.date,s.amount,s.area,s.description||""]));});
+    const csv=BOM+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download=`گزارش-${todayJ().replace(/\//g,"-")}.csv`;document.body.appendChild(a);a.click();document.body.removeChild(a);
+  };
+  return<div className="space-y-4">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-wrap gap-3 items-end">
+      <div><label className="text-xs font-bold text-gray-500">فیلتر</label><select className="block mt-1 border border-gray-200 rounded-xl px-3 py-2 text-sm" value={ft} onChange={e=>{setFt(e.target.value);setFv("");}}><option value="all">همه</option><option value="region">منطقه</option><option value="contractor">پیمانکار</option><option value="status">وضعیت</option></select></div>
+      {ft!=="all"&&<div><label className="text-xs font-bold text-gray-500">مقدار</label><select className="block mt-1 border border-gray-200 rounded-xl px-3 py-2 text-sm" value={fv} onChange={e=>setFv(e.target.value)}><option value="">انتخاب</option>{ft==="region"&&REGIONS.map(r=><option key={r}>{r}</option>)}{ft==="contractor"&&contractors.map(c=><option key={c}>{c}</option>)}{ft==="status"&&Object.keys(STATUS).map(s=><option key={s}>{s}</option>)}</select></div>}
+      <div className="flex gap-2 mr-auto">
+        <button onClick={handlePrint} className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gray-700 text-white text-sm hover:bg-gray-800">🖨️ چاپ/PDF</button>
+        <button onClick={handleExcel} className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm hover:bg-emerald-700">📊 Excel</button>
+      </div>
+    </div>
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-center">
+      {[[`${filtered.length}","پروژه`,"bg-green-500"],[fMS(tot.amount),"مجموع قرارداد","bg-emerald-500"],[fMS(tot.paid),"پرداختی","bg-teal-500"],[fMS(tot.rem),"باقی‌مانده","bg-amber-500"],[`${fN(tot.area)} / ${fN(tot.done)}`,"هکتار کل/انجام","bg-lime-600"],[`${tot.stCount}`,"صورت‌وضعیت","bg-blue-500"]].map(([v,l,c],i)=><div key={i} className="bg-white rounded-2xl p-3 shadow-sm border border-gray-100"><div className="text-xs text-gray-500">{l}</div><div className={`font-bold text-sm text-white ${c} rounded-xl px-2 py-1 mt-1 truncate`}>{v}</div></div>)}
+    </div>
+    <div className="space-y-4">{filtered.map(p=>{const c=cp(p);return<div key={p.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="px-4 py-3 border-b border-gray-100 flex flex-wrap items-start justify-between gap-2">
+        <div><span className="text-xs text-gray-400">{p.code}</span><div className="font-bold text-gray-800 text-base">{p.name}</div><div className="text-sm text-gray-500">پیمانکار: {p.contractor}</div></div>
+        <div className="flex flex-col items-end gap-1"><SBadge status={p.status}/><div className="text-xs text-gray-400">{p.startDate||"—"} تا {p.endDate||"—"}</div></div>
+      </div>
+      <div className="p-4 space-y-3">
+        <RgnTags regions={p.regions} mainRegion={p.mainRegion}/>
+        {p.description&&<p className="text-sm text-gray-600 bg-gray-50 rounded-xl p-3">{p.description}</p>}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {[[p.totalAmount,"مبلغ کل","#065f46"],[c.paid,"پرداختی","#059669"],[c.remainingAmount,"باقی","#d97706"]].map(([a,l,col],i)=><div key={i} className="bg-green-50 border border-green-100 rounded-xl p-3"><div className="text-xs text-gray-500">{l}</div><div className="font-bold text-sm mt-0.5" style={{color:col}}>{fMS(a)}</div><div className="text-xs text-emerald-700">{mW(a)}</div></div>)}
+          <div className="bg-green-50 border border-green-100 rounded-xl p-3"><div className="text-xs text-gray-500">هکتار</div><div className="font-bold text-sm text-green-700">{fN(p.totalArea)} کل</div><div className="text-xs text-gray-500">{fN(c.doneArea)} انجام | {fN(c.remainingArea)} باقی</div></div>
+        </div>
+        <div><div className="flex justify-between text-xs mb-1"><span>پیشرفت</span><span className="font-bold text-green-700">{c.progress.toFixed(1)}٪</span></div><PBar v={c.progress}/></div>
+        {p.statements.length>0&&<div className="overflow-x-auto"><table className="w-full text-xs"><thead><tr className="bg-amber-50 text-gray-600">{["#","تاریخ","مبلغ","به حروف","هکتار","توضیحات"].map(h=><th key={h} className="py-2 px-2 text-right border-b border-amber-100">{h}</th>)}</tr></thead><tbody>{p.statements.map((s,i)=><tr key={s.id} className={i%2===0?"bg-white":"bg-gray-50"}><td className="py-2 px-2 font-bold">{s.number}</td><td className="py-2 px-2 whitespace-nowrap">{s.date}</td><td className="py-2 px-2">{s.amount.toLocaleString("fa-IR")}</td><td className="py-2 px-2 text-emerald-700">{mW(s.amount)}</td><td className="py-2 px-2">{s.area}</td><td className="py-2 px-2 text-gray-500">{s.description||"—"}</td></tr>)}</tbody><tfoot><tr className="bg-green-50 font-bold text-green-800"><td className="py-2 px-2" colSpan={2}>جمع</td><td className="py-2 px-2">{c.paid.toLocaleString("fa-IR")}</td><td className="py-2 px-2 text-xs">{mW(c.paid)}</td><td className="py-2 px-2">{c.doneArea}</td><td></td></tr></tfoot></table></div>}
+      </div>
+    </div>;})}
+    </div>
+  </div>;
+}
+
+// ── Alerts Manager ────────────────────────────────────────────────────────────
+function AlertsMgr({projects,alerts,setAlerts}){
+  const[form,setForm]=useState({projectId:"",fromDate:"",daysAfter:"",message:""});const[editId,setEditId]=useState(null);
+  const inp="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400";
+  const tDate=a=>{const p=(a.fromDate||"").split("/").map(Number);if(p.length!==3)return"—";let[y,m,d]=p;d+=+a.daysAfter||0;while(d>30){d-=30;m++;}while(m>12){m-=12;y++;}return`${y}/${String(m).padStart(2,"0")}/${String(d).padStart(2,"0")}`};
+  const submit=async()=>{if(!form.projectId||!form.fromDate||form.daysAfter===""){alert("پروژه، تاریخ و روز الزامی است.");return;}
+    if(editId){const upd={id:editId,...form,daysAfter:+form.daysAfter};setAlerts(prev=>prev.map(a=>a.id===editId?{...a,...upd}:a));setEditId(null);DB.upsertAlert(upd).catch(console.error);}
+    else{const na={id:"alert"+Date.now(),...form,daysAfter:+form.daysAfter};setAlerts(prev=>[...prev,na]);DB.upsertAlert(na).catch(console.error);}
+    setForm({projectId:"",fromDate:"",daysAfter:"",message:""});};
+  const remove=async id=>{setAlerts(prev=>prev.filter(a=>a.id!==id));if(editId===id){setEditId(null);setForm({projectId:"",fromDate:"",daysAfter:"",message:""});}DB.deleteAlert(id).catch(console.error);};
+  return<div className="space-y-4">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+      <div className="font-bold text-gray-800 mb-3">🔔 {editId?"ویرایش هشدار":"تعریف هشدار جدید"}</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div><label className="text-xs font-bold text-gray-600 block mb-1">پروژه</label><select className={inp} value={form.projectId} onChange={e=>setForm({...form,projectId:e.target.value})}><option value="">انتخاب پروژه</option>{projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+        <div><label className="text-xs font-bold text-gray-600 block mb-1">تاریخ مبنا (شمسی)</label><input className={inp} placeholder="1403/05/01" value={form.fromDate} onChange={e=>setForm({...form,fromDate:e.target.value})}/></div>
+        <div><label className="text-xs font-bold text-gray-600 block mb-1">چند روز بعد هشدار شود</label><input type="number" className={inp} placeholder="مثال: 30" value={form.daysAfter} onChange={e=>setForm({...form,daysAfter:e.target.value})}/></div>
+        <div><label className="text-xs font-bold text-gray-600 block mb-1">متن پیام</label><input className={inp} placeholder="پیام هشدار..." value={form.message} onChange={e=>setForm({...form,message:e.target.value})}/></div>
+      </div>
+      <div className="flex gap-2 justify-end mt-3">
+        {editId&&<button onClick={()=>{setEditId(null);setForm({projectId:"",fromDate:"",daysAfter:"",message:""}),""}} className="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm">لغو</button>}
+        <button onClick={submit} className="px-5 py-2 rounded-xl bg-amber-500 text-white text-sm font-bold hover:bg-amber-600">➕ {editId?"ذخیره":"افزودن"}</button>
+      </div>
+    </div>
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+      <div className="font-bold text-gray-800 mb-3">هشدارهای تعریف‌شده ({alerts.length})</div>
+      {!alerts.length?<div className="text-sm text-gray-400 text-center py-6">هنوز هشداری تعریف نشده.</div>:
+      <div className="space-y-2">{alerts.map(a=>{const proj=projects.find(p=>p.id===a.projectId);return<div key={a.id} className="flex items-center justify-between gap-3 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 flex-wrap">
+        <div className="flex items-center gap-2 min-w-0"><span className="text-lg">🔔</span><div><div className="font-bold text-gray-800 text-sm">{proj?proj.name:"پروژه حذف‌شده"}</div><div className="text-xs text-gray-500">از {a.fromDate} + {a.daysAfter} روز → {tDate(a)}</div>{a.message&&<div className="text-xs text-amber-700">💬 {a.message}</div>}</div></div>
+        <div className="flex gap-1"><button onClick={()=>{setForm({projectId:a.projectId,fromDate:a.fromDate,daysAfter:a.daysAfter,message:a.message||""});setEditId(a.id);}} className="p-1.5 rounded-lg bg-white border border-gray-200 text-blue-500 hover:bg-blue-50">✎</button><button onClick={()=>remove(a.id)} className="p-1.5 rounded-lg bg-white border border-gray-200 text-red-500 hover:bg-red-50">🗑</button></div>
+      </div>;})}
+      </div>}
+    </div>
+  </div>;
+}
+
+// ── Project Detail ─────────────────────────────────────────────────────────────
+function PDetail({project,onBack}){
+  const c=cp(project);
+  return<div className="space-y-4">
+    <button onClick={onBack} className="flex items-center gap-1 text-sm text-green-700 hover:underline">◀ بازگشت</button>
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-3"><div><div className="text-xs text-gray-400">{project.code}</div><h2 className="text-xl font-bold text-gray-800">{project.name}</h2><div className="text-sm text-gray-500">پیمانکار: {project.contractor}</div></div><SBadge status={project.status}/></div>
+      <div className="mb-3"><RgnTags regions={project.regions} mainRegion={project.mainRegion}/></div>
+      <p className="text-sm text-gray-600 leading-7 mb-4">{project.description}</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">{[["مبلغ کل",fMS(project.totalAmount)],["مساحت",fN(project.totalArea)+" هکتار"],["شروع",project.startDate||"—"],["پایان",project.endDate||"—"]].map(([l,v])=><div key={l} className="bg-green-50 rounded-xl p-3"><div className="text-xs text-gray-500">{l}</div><div className="font-bold text-sm mt-0.5">{v}</div></div>)}</div>
+      <div className="mb-1 flex justify-between"><span className="text-sm font-medium">پیشرفت</span><span className="font-bold text-green-700 text-sm">{c.progress.toFixed(1)}٪</span></div><PBar v={c.progress}/>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">{[["پرداختی",fMS(c.paid),"text-emerald-600"],["باقی مبلغ",fMS(c.remainingAmount),"text-amber-600"],["هکتار انجام",fN(c.doneArea),"text-emerald-600"],["هکتار باقی",fN(c.remainingArea),"text-amber-600"]].map(([l,v,cl])=><div key={l} className="border border-gray-100 rounded-xl p-3 text-center"><div className="text-xs text-gray-500">{l}</div><div className={`font-bold text-sm mt-0.5 ${cl}`}>{v}</div></div>)}</div>
+    </div>
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
+      <h3 className="font-bold text-gray-800 mb-3">صورت‌وضعیت‌ها ({project.statements.length}/۱۰)</h3>
+      {!project.statements.length?<div className="text-sm text-gray-400">هنوز ثبت نشده.</div>:
+      <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-gray-500 border-b">{["#","تاریخ","مبلغ","به حروف","هکتار","توضیحات"].map(h=><th key={h} className="py-2 text-right px-1">{h}</th>)}</tr></thead>
+        <tbody>{project.statements.map(s=><tr key={s.id} className="border-b border-gray-50"><td className="py-2 px-1 font-bold">{s.number}</td><td className="py-2 px-1">{s.date}</td><td className="py-2 px-1 whitespace-nowrap">{s.amount.toLocaleString("fa-IR")}</td><td className="py-2 px-1 text-emerald-700 text-xs">{mW(s.amount)}</td><td className="py-2 px-1">{s.area}</td><td className="py-2 px-1 text-gray-500">{s.description}</td></tr>)}</tbody>
+      </table></div>}
+    </div>
+  </div>;
+}
+
+// ── Main App ──────────────────────────────────────────────────────────────────
+function App(){
+  const[projects,setProjects]=useState([]);
+  const[geometries,setGeometries]=useState([]);
+  const[alerts,setAlerts]=useState([]);
+  const[loaded,setLoaded]=useState(false);
+  const[loadErr,setLoadErr]=useState("");
+  const[syncSt,setSyncSt]=useState("loading");
+  const[isAdmin,setIsAdmin]=useState(false);
+  const[loginForm,setLoginForm]=useState({user:"",pass:""});
+  const[loginErr,setLoginErr]=useState("");
+  const[view,setView]=useState("public");
+  const[selProj,setSelProj]=useState(null);
+  const[showPF,setShowPF]=useState(false);
+  const[editProj,setEditProj]=useState(null);
+  const[delId,setDelId]=useState(null);
+  const[search,setSearch]=useState("");
+  const[dragIdx,setDragIdx]=useState(null);
+
+  useEffect(()=>{
+    DB.loadAll()
+      .then(({projects:p,geometries:g,alerts:a})=>{setProjects(p);setGeometries(g);setAlerts(a);setSyncSt("online");})
+      .catch(e=>{console.error(e);setLoadErr("⚠️ خطا: "+e.message);setSyncSt("offline");})
+      .finally(()=>setLoaded(true));
+  },[]);
+
+  const login=()=>{if(loginForm.user===ADMIN_USER&&loginForm.pass===ADMIN_PASS){setIsAdmin(true);setView("admin");setLoginErr("");}else setLoginErr("اطلاعات اشتباه است.");};
+
+  const saveProject=async data=>{
+    const proj=editProj?{...editProj,...data}:{...data,id:"p"+Date.now(),code:"GS-"+(1000+projects.length+1),sortOrder:projects.length};
+    if(editProj)setProjects(prev=>prev.map(p=>p.id===proj.id?proj:p));else setProjects(prev=>[...prev,proj]);
+    setShowPF(false);setEditProj(null);setSyncSt("saving");
+    try{await DB.upsertProject(proj);await DB.replaceStmts(proj.id,proj.statements||[]);setSyncSt("online");}catch(e){console.error(e);setSyncSt("offline");}
+  };
+
+  const reorder=(from,to)=>{setProjects(prev=>{const a=[...prev];const[m]=a.splice(from,1);a.splice(to,0,m);DB.reorder(a).catch(console.error);return a;});};
+
+  const activeAlerts=useMemo(()=>{
+    const toDN=p=>p[0]*360+p[1]*30+p[2];const today=toDN(todayJ().split("/").map(Number));
+    return alerts.map(a=>{const p=(a.fromDate||"").split("/").map(Number);if(p.length!==3||p.some(isNaN))return null;if(today<toDN(p)+(+a.daysAfter||0))return null;return{...a,project:projects.find(pr=>pr.id===a.projectId)};}).filter(Boolean);
+  },[alerts,projects]);
+
+  const filtered=projects.filter(p=>p.name.includes(search)||p.code.includes(search)||p.contractor.includes(search));
+  const tots=projects.reduce((a,p)=>{const c=cp(p);a.contract+=p.totalAmount;a.paid+=c.paid;a.area+=p.totalArea;a.prog+=c.progress;if(p.status==="در حال اجرا")a.active++;if(p.status==="تکمیل‌شده")a.completed++;if(p.status==="متوقف‌شده")a.stopped++;return a;},{contract:0,paid:0,area:0,prog:0,active:0,completed:0,stopped:0});
+  const avgProg=projects.length?tots.prog/projects.length:0;
+
+  if(!loaded)return<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",direction:"rtl",fontFamily:"Tahoma,sans-serif",background:"#f0fdf4"}}><div style={{textAlign:"center"}}><div style={{width:40,height:40,border:"4px solid #86efac",borderTopColor:"#16a34a",borderRadius:"50%",animation:"spin 1s linear infinite",margin:"0 auto 12px"}}></div><span style={{color:"#6b7280",fontSize:14}}>در حال اتصال به سرور Supabase…</span></div></div>;
+
+  if(view==="login")return<div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4" dir="rtl">
+    <div className="bg-white rounded-3xl shadow-xl p-8 w-full max-w-sm">
+      <div className="flex flex-col items-center mb-6"><div className="text-5xl mb-2">🌳</div><h2 className="font-bold text-gray-800 text-lg">ورود مدیر سامانه</h2></div>
+      <div className="space-y-3">
+        <input className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-green-400" placeholder="نام کاربری" value={loginForm.user} onChange={e=>setLoginForm({...loginForm,user:e.target.value})}/>
+        <input type="password" className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-green-400" placeholder="رمز عبور" value={loginForm.pass} onChange={e=>setLoginForm({...loginForm,pass:e.target.value})}/>
+        {loginErr&&<div className="text-xs text-red-500 bg-red-50 rounded-xl px-3 py-2">{loginErr}</div>}
+        <button onClick={login} className="w-full bg-green-600 text-white rounded-xl py-2.5 text-sm font-bold hover:bg-green-700">ورود</button>
+        <button onClick={()=>setView("public")} className="w-full text-gray-400 text-xs hover:underline">بازگشت به داشبورد عمومی</button>
+      </div>
+    </div>
+  </div>;
+
+  if(view==="public")return<div className="min-h-screen bg-gray-50" dir="rtl">
+    <header className="bg-green-700 text-white px-4 py-3 flex items-center justify-between sticky top-0 z-10 shadow">
+      <div className="flex items-center gap-2"><span className="text-xl">🌳</span><div><div className="font-bold text-sm">سامانه فضای سبز شهری</div><div className="text-xs text-green-100">داشبورد عمومی</div></div></div>
+      <button onClick={()=>setView("login")} className="text-xs bg-white/15 hover:bg-white/25 px-3 py-1.5 rounded-xl">👤 ورود مدیر</button>
+    </header>
+    <main className="p-3 sm:p-4 max-w-6xl mx-auto space-y-4">
+      {loadErr&&<div className="bg-amber-50 border border-amber-200 text-amber-700 text-xs rounded-xl px-3 py-2">{loadErr}</div>}
+      {selProj?<PDetail project={selProj} onBack={()=>setSelProj(null)}/>:<>
+        {activeAlerts.length>0&&<div className="space-y-2">{activeAlerts.map(a=><div key={a.id} className="bg-red-50 border-2 border-red-200 rounded-2xl p-3 flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-red-500 flex items-center justify-center shrink-0 text-white text-lg">🔔</div><div><div className="font-bold text-red-700 text-sm">⚠️ هشدار: {a.project?a.project.name:"پروژه"}</div><div className="text-xs text-red-600">{a.message||`از تاریخ ${a.fromDate} به مدت ${a.daysAfter} روز گذشته.`}</div></div></div>)}</div>}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[[projects.length,"کل پروژه‌ها","bg-green-500"],[tots.active,"در حال اجرا","bg-amber-500"],[tots.completed,"تکمیل‌شده","bg-emerald-500"],[avgProg.toFixed(0)+"٪","میانگین پیشرفت","bg-teal-500"]].map(([v,l,c],i)=>(
+            <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-3">
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${c} text-white text-lg`}>📊</div>
+              <div><div className="text-xs text-gray-500">{l}</div><div className="font-bold text-gray-800">{v}</div></div>
+            </div>
+          ))}
+        </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
+            <h3 className="font-bold text-gray-800">فهرست پروژه‌ها</h3>
+            <div className="relative"><span className="absolute right-3 top-2.5 text-gray-400">🔍</span><input className="border border-gray-200 rounded-xl pr-9 pl-3 py-2 text-sm w-48 outline-none focus:ring-2 focus:ring-green-400" placeholder="جستجو..." value={search} onChange={e=>setSearch(e.target.value)}/></div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{filtered.map(p=>{const c=cp(p);return<div key={p.id} onClick={()=>setSelProj(p)} className="border border-gray-100 rounded-xl p-3 hover:border-green-300 hover:shadow-sm cursor-pointer transition">
+            <div className="flex items-center justify-between mb-1"><div className="font-bold text-gray-800 text-sm">{p.name}</div><SBadge status={p.status}/></div>
+            <div className="text-xs text-gray-500 mb-2">{p.contractor}</div>
+            <RgnTags regions={p.regions} mainRegion={p.mainRegion}/>
+            <div className="mt-2"><PBar v={c.progress}/><div className="text-xs text-gray-400 mt-1">{c.progress.toFixed(0)}٪ | {fMS(c.paid)} پرداختی</div></div>
+          </div>;})}
+          </div>
+        </div>
+        <OSMMap projects={projects} geometries={geometries} setGeometries={setGeometries} editable={false}/>
+        <Charts projects={projects}/>
+      </>}
+    </main>
+  </div>;
+
+  // Admin
+  const NAV=[["admin","📊 داشبورد"],["projects","📁 پروژه‌ها"],["map","🗺️ نقشه GIS"],["alerts","🔔 هشدارها"],["reports","📈 گزارش‌گیری"]];
+  return<div className="min-h-screen bg-gray-50 flex" dir="rtl">
+    <aside className="w-52 bg-white border-l border-gray-100 hidden md:flex flex-col shrink-0">
+      <div className="p-4 flex items-center gap-2 border-b border-gray-100"><span className="text-2xl">🌳</span><div><div className="font-bold text-sm text-gray-800">پنل مدیریت</div><div className="text-xs text-gray-400">فضای سبز</div></div></div>
+      <nav className="flex-1 p-3 space-y-1">{NAV.map(([id,label])=><button key={id} onClick={()=>{setView(id);setSelProj(null);}} className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm transition text-right ${view===id?"bg-green-600 text-white":"text-gray-600 hover:bg-green-50"}`}>{label}</button>)}</nav>
+      <div className="p-3 border-t border-gray-100 space-y-1">
+        <div className="text-xs text-center flex items-center justify-center gap-1 pb-1">
+          {syncSt==="online"&&<><span className="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span><span className="text-emerald-500">ذخیره آنلاین فعال ✓</span></>}
+          {syncSt==="saving"&&<><span className="w-2 h-2 rounded-full bg-amber-400 inline-block animate-pulse"></span><span className="text-amber-500">در حال ذخیره…</span></>}
+          {syncSt==="offline"&&<><span className="w-2 h-2 rounded-full bg-red-400 inline-block"></span><span className="text-red-500">آفلاین</span></>}
+        </div>
+        <button onClick={()=>{setIsAdmin(false);setView("public");}} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-green-50">👤 داشبورد عمومی</button>
+        <button onClick={()=>{setIsAdmin(false);setView("login");}} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-red-500 hover:bg-red-50">🚪 خروج</button>
+      </div>
+    </aside>
+    <div className="flex-1 flex flex-col min-w-0">
+      <header className="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between md:hidden">
+        <div className="font-bold text-gray-800 text-sm">پنل مدیریت</div>
+        <select className="border border-gray-200 rounded-xl px-2 py-1 text-xs" value={view} onChange={e=>setView(e.target.value)}>{NAV.map(([id,label])=><option key={id} value={id}>{label}</option>)}</select>
+      </header>
+      <main className="flex-1 p-3 sm:p-4 max-w-6xl mx-auto w-full space-y-4">
+        {loadErr&&<div className="bg-amber-50 border border-amber-200 text-amber-700 text-xs rounded-xl px-3 py-2">{loadErr}</div>}
+        {selProj?<PDetail project={selProj} onBack={()=>setSelProj(null)}/>:
+        view==="admin"?<>
+          {activeAlerts.length>0&&<div className="space-y-2">{activeAlerts.map(a=><div key={a.id} className="bg-red-50 border-2 border-red-200 rounded-2xl p-3 flex items-center gap-3"><span className="text-2xl">🔔</span><div><div className="font-bold text-red-700 text-sm">⚠️ {a.project?a.project.name:"پروژه"}</div><div className="text-xs text-red-600">{a.message}</div></div></div>)}</div>}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[[projects.length,"کل","bg-green-500"],[tots.active,"در حال اجرا","bg-amber-500"],[tots.completed,"تکمیل‌شده","bg-emerald-500"],[tots.stopped,"متوقف","bg-red-500"]].map(([v,l,c],i)=><div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100"><div className="text-xs text-gray-500">{l}</div><div className={`font-bold text-xl mt-1 ${c.replace("bg-","text-")}`}>{v}</div></div>)}
+            {[[fMS(tots.contract),"مجموع قراردادها","bg-teal-500"],[fMS(tots.paid),"پرداختی","bg-lime-600"],[fN(tots.area)+" هکتار","هکتار کل","bg-cyan-500"],[avgProg.toFixed(0)+"٪","میانگین پیشرفت","bg-green-600"]].map(([v,l,c],i)=><div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100"><div className="text-xs text-gray-500">{l}</div><div className="font-bold text-sm mt-1">{v}</div></div>)}
+          </div>
+          <Charts projects={projects}/>
+        </>:
+        view==="projects"?<div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
+            <h3 className="font-bold text-gray-800">پروژه‌ها ({projects.length})</h3>
+            <div className="flex gap-2 flex-wrap">
+              <div className="relative"><span className="absolute right-3 top-2.5 text-gray-400 text-sm">🔍</span><input className="border border-gray-200 rounded-xl pr-9 pl-3 py-2 text-sm w-40 outline-none focus:ring-2 focus:ring-green-400" placeholder="جستجو..." value={search} onChange={e=>setSearch(e.target.value)}/></div>
+              <button onClick={()=>{setEditProj(null);setShowPF(true);}} className="flex items-center gap-1 bg-green-600 text-white px-3 py-2 rounded-xl text-sm hover:bg-green-700">➕ جدید</button>
+            </div>
+          </div>
+          {search&&<div className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-1.5 mb-2">⚠️ برای جابجایی ردیف‌ها، جستجو را خالی کنید.</div>}
+          <div className="overflow-x-auto"><table className="w-full text-xs sm:text-sm">
+            <thead><tr className="text-gray-500 border-b">{["","کد","نام","پیمانکار","مبلغ کل","پرداختی","پیشرفت","وضعیت","ص.وضعیت","عملیات"].map(h=><th key={h} className="py-2 text-right whitespace-nowrap px-1">{h}</th>)}</tr></thead>
+            <tbody>{filtered.map((p,idx)=>{const c=cp(p);return<tr key={p.id} draggable={!search} onDragStart={()=>!search&&setDragIdx(idx)} onDragOver={e=>{if(!search)e.preventDefault();}} onDrop={()=>{if(!search&&dragIdx!==null&&dragIdx!==idx){reorder(dragIdx,idx);}setDragIdx(null);}} onDragEnd={()=>setDragIdx(null)} className={`border-b border-gray-50 hover:bg-green-50/40 ${dragIdx===idx?"opacity-40":""}`}>
+              <td className="py-2 px-1 cursor-move text-gray-300">⠿</td>
+              <td className="py-2 px-1">{p.code}</td>
+              <td className="py-2 px-1 font-medium cursor-pointer hover:text-green-700" onClick={()=>setSelProj(p)}>{p.name}</td>
+              <td className="py-2 px-1">{p.contractor}</td>
+              <td className="py-2 px-1 whitespace-nowrap">{fMS(p.totalAmount)}</td>
+              <td className="py-2 px-1 whitespace-nowrap">{fMS(c.paid)}</td>
+              <td className="py-2 px-1 w-16"><PBar v={c.progress}/><div className="text-xs text-gray-400">{c.progress.toFixed(0)}٪</div></td>
+              <td className="py-2 px-1"><SBadge status={p.status}/></td>
+              <td className="py-2 px-1 text-center">{p.statements.length}/10</td>
+              <td className="py-2 px-1"><div className="flex gap-1">
+                <button onClick={()=>{setEditProj(p);setShowPF(true);}} className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100">✎</button>
+                <button onClick={()=>setDelId(p.id)} className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100">🗑</button>
+              </div></td>
+            </tr>;})}
+            </tbody>
+          </table></div>
+        </div>:
+        view==="map"?<OSMMap projects={projects} geometries={geometries} setGeometries={setGeometries} editable={true}/>:
+        view==="alerts"?<AlertsMgr projects={projects} alerts={alerts} setAlerts={setAlerts}/>:
+        view==="reports"?<Reports projects={projects}/>:null}
+      </main>
+    </div>
+    {showPF&&<Modal title={editProj?"ویرایش پروژه":"پروژه جدید"} onClose={()=>{setShowPF(false);setEditProj(null);}} full><ProjectForm initial={editProj} onSave={saveProject} onCancel={()=>{setShowPF(false);setEditProj(null);}}/></Modal>}
+    {delId&&<Modal title="حذف پروژه" onClose={()=>setDelId(null)}><div className="space-y-4"><p className="text-sm text-gray-600">آیا از حذف اطمینان دارید؟</p><div className="flex gap-2 justify-end"><button onClick={()=>setDelId(null)} className="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm">انصراف</button><button onClick={async()=>{const id=delId;setProjects(prev=>prev.filter(p=>p.id!==id));setDelId(null);setSyncSt("saving");try{await DB.deleteProject(id);setSyncSt("online");}catch(e){console.error(e);setSyncSt("offline");}}} className="px-5 py-2 rounded-xl bg-red-600 text-white text-sm font-bold">حذف</button></div></div></Modal>}
+  </div>;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
