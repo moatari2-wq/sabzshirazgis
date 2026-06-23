@@ -693,7 +693,7 @@
             display: none;
         }
 
-        /* ===== SIDEBAR & ADMIN (minimal changes) ===== */
+        /* ===== SIDEBAR & ADMIN ===== */
         .sidebar {
             position: fixed;
             top: 0;
@@ -784,7 +784,7 @@
             min-height: 100vh;
         }
 
-        /* --- rest of admin styles (unchanged, but kept for completeness) --- */
+        /* Admin common styles */
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -925,6 +925,13 @@
         .btn-sm {
             padding: 4px 14px;
             font-size: 13px;
+        }
+        .btn-success {
+            background: #16a34a;
+            color: #fff;
+        }
+        .btn-success:hover {
+            background: #15803d;
         }
         table {
             width: 100%;
@@ -1259,6 +1266,40 @@
             margin-bottom: 10px;
         }
 
+        /* Toast message */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            background: #0f172a;
+            color: #fff;
+            padding: 14px 24px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            font-weight: 600;
+            font-size: 14px;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.4s ease;
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .toast i {
+            font-size: 20px;
+        }
+        .toast.success i {
+            color: #4ade80;
+        }
+        .toast.error i {
+            color: #f87171;
+        }
+
         @media (max-width: 992px) {
             .public-charts,
             .charts-row {
@@ -1318,6 +1359,13 @@
             .public-stats {
                 margin-top: -10px;
             }
+            .toast {
+                left: 16px;
+                right: 16px;
+                bottom: 16px;
+                font-size: 13px;
+                padding: 12px 18px;
+            }
         }
         @media (max-width: 480px) {
             .stats-grid {
@@ -1350,7 +1398,8 @@
             .sidebar,
             .page-header .user-info,
             .mobile-menu-btn,
-            .sidebar-overlay {
+            .sidebar-overlay,
+            .toast {
                 display: none !important;
             }
             .main-content {
@@ -1535,6 +1584,12 @@
                 <div class="nav-item" data-page="public" onclick="switchToPublic()">
                     <i class="fas fa-globe"></i> صفحه عمومی
                 </div>
+                <div class="nav-item" style="margin-top:10px;border-top:1px solid #1e293b;padding-top:14px;cursor:default;color:#64748b;font-size:13px;">
+                    <i class="fas fa-database"></i> <span id="storageStatus">✅ ذخیره‌سازی محلی فعال</span>
+                </div>
+                <div class="nav-item" onclick="resetToSample()" style="color:#f59e0b;cursor:pointer;">
+                    <i class="fas fa-undo-alt"></i> بازنشانی به داده‌های نمونه
+                </div>
                 <div class="nav-item logout-btn" onclick="handleLogout()">
                     <i class="fas fa-sign-out-alt"></i> خروج
                 </div>
@@ -1692,10 +1747,16 @@
         </div>
     </div>
 
+    <!-- Toast Message -->
+    <div id="toast" class="toast">
+        <i id="toastIcon" class="fas fa-check-circle"></i>
+        <span id="toastMessage">عملیات با موفقیت انجام شد</span>
+    </div>
+
     <!-- ==================== SCRIPTS ==================== -->
     <script>
         // ============================================================
-        // DATA LAYER
+        // DATA LAYER with robust error handling
         // ============================================================
         const STORAGE_KEY = 'greenSpaceData';
 
@@ -1703,29 +1764,130 @@
             return { projects: [], alerts: [], nextProjectId: 1, nextAlertId: 1 };
         }
 
+        // Sample data for initial setup
+        function getSampleData() {
+            return {
+                projects: [
+                    { id: 1, name: 'توسعه فضای سبز ارتفاعات شمالی', contractor: 'شرکت پارک‌سازان', amount: 8500000000,
+                        area: 12.5, startDate: '۱۴۰۳/۰۲/۱۰', endDate: '۱۴۰۴/۰۸/۱۵', status: 'در حال اجرا',
+                        regions: ['منطقه ۱', 'ارتفاعات'], description: 'عملیات کاشت و آبیاری' },
+                    { id: 2, name: 'احیای پارک جنگلی غرب', contractor: 'سبزاندیشان', amount: 3200000000, area: 8.2,
+                        startDate: '۱۴۰۲/۱۱/۰۱', endDate: '۱۴۰۳/۰۶/۳۰', status: 'تکمیل‌شده', regions: ['منطقه ۳',
+                            'منطقه ۴'
+                        ], description: 'احیای کامل' },
+                    { id: 3, name: 'ساماندهی فضای سبز منطقه ۵', contractor: 'نوین‌باغ', amount: 1200000000, area: 4.0,
+                        startDate: '۱۴۰۳/۰۴/۲۰', status: 'متوقف‌شده', regions: ['منطقه ۵'],
+                        description: 'متوقف به دلیل کمبود اعتبار' },
+                    { id: 4, name: 'احداث بوستان محلی منطقه ۷', contractor: 'شهرداری منطقه ۷', amount: 2100000000,
+                        area: 3.8, startDate: '۱۴۰۳/۰۶/۰۱', endDate: '۱۴۰۳/۱۲/۲۰', status: 'در حال اجرا',
+                        regions: ['منطقه ۷', 'سایر'], description: 'شامل زمین بازی و فضای سبز' }
+                ],
+                alerts: [],
+                nextProjectId: 5,
+                nextAlertId: 1
+            };
+        }
+
         function loadData() {
             try {
                 const raw = localStorage.getItem(STORAGE_KEY);
-                if (!raw) return getDefaultData();
+                if (!raw) {
+                    // First time - initialize with sample data
+                    const sample = getSampleData();
+                    saveData(sample);
+                    return sample;
+                }
                 const data = JSON.parse(raw);
+                // Validate and fix structure
                 if (!data.projects) data.projects = [];
                 if (!data.alerts) data.alerts = [];
                 if (!data.nextProjectId) data.nextProjectId = 1;
                 if (!data.nextAlertId) data.nextAlertId = 1;
                 return data;
-            } catch (e) { return getDefaultData(); }
+            } catch (e) {
+                console.error('Error loading data:', e);
+                // If corrupted, reset to sample
+                const sample = getSampleData();
+                saveData(sample);
+                showToast('خطا در خواندن داده‌ها، بازنشانی به حالت اولیه', 'error');
+                return sample;
+            }
         }
 
         function saveData(data) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            try {
+                const json = JSON.stringify(data);
+                localStorage.setItem(STORAGE_KEY, json);
+                updateStorageStatus(true);
+                return true;
+            } catch (e) {
+                console.error('Error saving data:', e);
+                showToast('خطا در ذخیره‌سازی داده‌ها: ' + e.message, 'error');
+                updateStorageStatus(false);
+                return false;
+            }
         }
 
+        function updateStorageStatus(ok) {
+            const el = document.getElementById('storageStatus');
+            if (el) {
+                el.innerHTML = ok ?
+                    '<i class="fas fa-check-circle" style="color:#4ade80;"></i> ذخیره‌سازی محلی فعال' :
+                    '<i class="fas fa-exclamation-triangle" style="color:#f87171;"></i> مشکل در ذخیره‌سازی!';
+                el.style.color = ok ? '#4ade80' : '#f87171';
+            }
+        }
+
+        // ============================================================
+        // TOAST NOTIFICATION
+        // ============================================================
+        let toastTimeout = null;
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            const msg = document.getElementById('toastMessage');
+            msg.textContent = message;
+            icon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+            toast.className = 'toast ' + type;
+            // force reflow
+            void toast.offsetWidth;
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // ============================================================
+        // RESET TO SAMPLE DATA
+        // ============================================================
+        function resetToSample() {
+            if (!confirm('آیا از بازنشانی همه داده‌ها به حالت نمونه مطمئن هستید؟ تمام تغییرات شما از بین خواهد رفت.')) return;
+            const sample = getSampleData();
+            saveData(sample);
+            showToast('داده‌ها با موفقیت به حالت نمونه بازنشانی شدند', 'success');
+            // Refresh all views
+            renderPublicPage();
+            if (document.getElementById('appContainer').style.display !== 'none') {
+                renderDashboard();
+                renderProjects();
+                renderAlerts();
+                renderReports();
+                populateProjectReportSelect();
+                updateBadges();
+            }
+        }
+
+        // ============================================================
+        // REGIONS
+        // ============================================================
         const REGIONS = ['منطقه ۱', 'منطقه ۲', 'منطقه ۳', 'منطقه ۴', 'منطقه ۵', 'منطقه ۶', 'منطقه ۷', 'منطقه ۸', 'منطقه ۹', 'منطقه ۱۰',
             'منطقه ۱۱', 'ارتفاعات', 'سایر'
         ];
 
         // ============================================================
-        // PUBLIC PAGE (non-financial)
+        // PUBLIC PAGE
         // ============================================================
         let pubStatusChart = null,
             pubRegionChart = null;
@@ -1787,6 +1949,7 @@
                 grid.innerHTML = html;
             }
 
+            // Status Chart
             const ctx1 = document.getElementById('publicStatusChart').getContext('2d');
             if (pubStatusChart) pubStatusChart.destroy();
             pubStatusChart = new Chart(ctx1, {
@@ -1806,6 +1969,7 @@
                 }
             });
 
+            // Region Chart
             const regionMap = {};
             allProjects.forEach(p => (p.regions || []).forEach(r => { regionMap[r] = (regionMap[r] || 0) + 1; }));
             const sorted = Object.entries(regionMap).sort((a, b) => b[1] - a[1]).slice(0, 8);
@@ -1836,6 +2000,7 @@
                 }
             });
 
+            // Region Table
             const tableContainer = document.getElementById('publicRegionTable');
             if (Object.keys(regionMap).length === 0) {
                 tableContainer.innerHTML = `<p class="text-muted">هیچ منطقه‌ای ثبت نشده است.</p>`;
@@ -1879,6 +2044,7 @@
                 document.getElementById('publicPage').style.display = 'none';
                 document.getElementById('appContainer').style.display = 'block';
                 initAdmin();
+                showToast('ورود موفق به پنل مدیریت', 'success');
                 return false;
             } else {
                 document.getElementById('loginError').style.display = 'block';
@@ -1895,6 +2061,7 @@
                     statusChartInstance = null; }
                 if (regionChartInstance) { regionChartInstance.destroy();
                     regionChartInstance = null; }
+                showToast('خروج از پنل مدیریت', 'success');
             }
         }
 
@@ -1947,6 +2114,7 @@
             populateProjectReportSelect();
             navigateTo('dashboard');
             updateBadges();
+            updateStorageStatus(true);
             document.querySelectorAll('.modal-overlay').forEach(el => {
                 el.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('show'); });
             });
@@ -2007,7 +2175,9 @@
                 project.createdAt = new Date().toISOString();
                 data.projects.push(project);
             }
-            saveData(data);
+            if (saveData(data)) {
+                showToast(editId ? 'پروژه با موفقیت ویرایش شد' : 'پروژه جدید با موفقیت ثبت شد', 'success');
+            }
             closeModal('projectModal');
             document.getElementById('projectForm').reset();
             document.getElementById('editProjectId').value = '';
@@ -2024,7 +2194,9 @@
             const data = loadData();
             data.projects = data.projects.filter(p => p.id != id);
             data.alerts = data.alerts.filter(a => a.projectId != id);
-            saveData(data);
+            if (saveData(data)) {
+                showToast('پروژه با موفقیت حذف شد', 'success');
+            }
             renderProjects();
             updateBadges();
             populateProjectReportSelect();
@@ -2129,7 +2301,9 @@
                 message: message || `هشدار برای پروژه "${project ? project.name : ''}"`,
                 createdAt: new Date().toISOString()
             });
-            saveData(data);
+            if (saveData(data)) {
+                showToast('هشدار جدید با موفقیت ثبت شد', 'success');
+            }
             closeModal('alertModal');
             document.getElementById('alertForm').reset();
             renderAlerts();
@@ -2141,7 +2315,9 @@
             if (!confirm('حذف هشدار؟')) return;
             const data = loadData();
             data.alerts = data.alerts.filter(a => a.id != id);
-            saveData(data);
+            if (saveData(data)) {
+                showToast('هشدار با موفقیت حذف شد', 'success');
+            }
             renderAlerts();
             updateBadges();
         }
@@ -2222,6 +2398,7 @@
             a.download = 'گزارش_پروژه‌ها.json';
             a.click();
             URL.revokeObjectURL(url);
+            showToast('گزارش با موفقیت خروجی گرفته شد', 'success');
         }
 
         // ============================================================
@@ -2344,6 +2521,7 @@
                 rc.innerHTML = html;
             }
 
+            // Charts
             const sc = { 'در حال اجرا': running, 'تکمیل‌شده': complete, 'متوقف‌شده': stopped };
             const ctx1 = document.getElementById('statusChart').getContext('2d');
             if (statusChartInstance) statusChartInstance.destroy();
@@ -2395,31 +2573,18 @@
         });
 
         // ============================================================
-        // INIT PUBLIC ON LOAD
+        // INIT ON LOAD
         // ============================================================
         window.onload = function() {
+            // First, ensure data exists
             const data = loadData();
+            // If data is empty (shouldn't happen due to loadData fallback), but just in case
             if (data.projects.length === 0) {
-                const sample = [
-                    { id: 1, name: 'توسعه فضای سبز ارتفاعات شمالی', contractor: 'شرکت پارک‌سازان', amount: 8500000000,
-                        area: 12.5, startDate: '۱۴۰۳/۰۲/۱۰', endDate: '۱۴۰۴/۰۸/۱۵', status: 'در حال اجرا',
-                        regions: ['منطقه ۱', 'ارتفاعات'], description: 'عملیات کاشت و آبیاری' },
-                    { id: 2, name: 'احیای پارک جنگلی غرب', contractor: 'سبزاندیشان', amount: 3200000000, area: 8.2,
-                        startDate: '۱۴۰۲/۱۱/۰۱', endDate: '۱۴۰۳/۰۶/۳۰', status: 'تکمیل‌شده', regions: ['منطقه ۳',
-                            'منطقه ۴'
-                        ], description: 'احیای کامل' },
-                    { id: 3, name: 'ساماندهی فضای سبز منطقه ۵', contractor: 'نوین‌باغ', amount: 1200000000, area: 4.0,
-                        startDate: '۱۴۰۳/۰۴/۲۰', status: 'متوقف‌شده', regions: ['منطقه ۵'],
-                        description: 'متوقف به دلیل کمبود اعتبار' },
-                    { id: 4, name: 'احداث بوستان محلی منطقه ۷', contractor: 'شهرداری منطقه ۷', amount: 2100000000,
-                        area: 3.8, startDate: '۱۴۰۳/۰۶/۰۱', endDate: '۱۴۰۳/۱۲/۲۰', status: 'در حال اجرا',
-                        regions: ['منطقه ۷', 'سایر'], description: 'شامل زمین بازی و فضای سبز' }
-                ];
-                data.projects = sample;
-                data.nextProjectId = 5;
-                saveData(data);
+                const sample = getSampleData();
+                saveData(sample);
             }
             renderPublicPage();
+            updateStorageStatus(true);
         };
     </script>
 
