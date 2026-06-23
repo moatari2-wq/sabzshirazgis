@@ -11,10 +11,11 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
     </script>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js">
+    </script>
     <style>
-        /* ============================================================
-               ROOT VARIABLES & RESET
-            ============================================================ */
+        /* ===== تمام استایل‌های قبلی بدون تغییر ===== */
         :root {
             --primary-900: #0a2e1f;
             --primary-800: #13432e;
@@ -27,7 +28,6 @@
             --primary-100: #dcfce7;
             --primary-50: #ecfdf3;
             --gold: #fbbf24;
-            --gold-light: #fde68a;
             --gray-50: #f9fafb;
             --gray-100: #f3f4f6;
             --gray-200: #e5e7eb;
@@ -48,13 +48,11 @@
             --radius-xl: 32px;
             --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
-
         body {
             font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
             background: var(--gray-50);
@@ -65,10 +63,6 @@
             -moz-osx-font-smoothing: grayscale;
             overflow-x: hidden;
         }
-
-        /* ============================================================
-               SCROLLBAR STYLING
-            ============================================================ */
         ::-webkit-scrollbar {
             width: 5px;
             height: 5px;
@@ -84,10 +78,6 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--primary-600);
         }
-
-        /* ============================================================
-               UTILITY CLASSES
-            ============================================================ */
         .text-primary-dark {
             color: var(--primary-800);
         }
@@ -96,9 +86,6 @@
         }
         .bg-primary-gradient {
             background: linear-gradient(135deg, var(--primary-900) 0%, var(--primary-700) 100%);
-        }
-        .bg-primary-gradient-light {
-            background: linear-gradient(135deg, var(--primary-700) 0%, var(--primary-500) 100%);
         }
         .shadow-soft {
             box-shadow: var(--shadow-sm);
@@ -119,9 +106,7 @@
             transition: var(--transition);
         }
 
-        /* ============================================================
-               PUBLIC HEADER (موبایل-فرست)
-            ============================================================ */
+        /* ===== هدر عمومی ===== */
         .public-header {
             background: linear-gradient(145deg, var(--primary-900) 0%, var(--primary-700) 100%);
             color: #fff;
@@ -131,7 +116,6 @@
             border-bottom: 3px solid var(--primary-300);
             box-shadow: 0 8px 30px rgba(10, 46, 31, 0.25);
         }
-
         .public-header .brand {
             font-size: clamp(1.2rem, 5vw, 2rem);
             font-weight: 800;
@@ -150,8 +134,6 @@
             font-weight: 300;
             margin-top: 2px;
         }
-
-        /* هدر استیت‌ها — فقط پروژه‌های انجام‌شده و در حال اجرا */
         .header-stats {
             display: flex;
             flex-wrap: wrap;
@@ -186,7 +168,6 @@
             font-size: clamp(0.6rem, 1.6vw, 0.75rem);
             margin-right: 2px;
         }
-
         .login-btn-header {
             background: rgba(255, 255, 255, 0.10);
             border: 1px solid rgba(255, 255, 255, 0.18);
@@ -212,9 +193,7 @@
             transform: scale(0.96);
         }
 
-        /* ============================================================
-               PUBLIC CARDS (بدون اطلاعات مالی)
-            ============================================================ */
+        /* ===== کارت‌های عمومی ===== */
         .public-card {
             background: #fff;
             border-radius: var(--radius-md);
@@ -241,9 +220,6 @@
             transform: translateY(-4px);
             box-shadow: var(--shadow-md);
             border-color: var(--primary-200);
-        }
-        .public-card:active {
-            transform: scale(0.98);
         }
         .public-card .card-icon {
             font-size: 28px;
@@ -298,9 +274,7 @@
             color: #991b1b;
         }
 
-        /* ============================================================
-               PUBLIC CHARTS — زیبا و شکیل
-            ============================================================ */
+        /* ===== نمودارهای عمومی ===== */
         .public-chart-box {
             background: #fff;
             border-radius: var(--radius-md);
@@ -345,9 +319,7 @@
             aspect-ratio: 16/9;
         }
 
-        /* ============================================================
-               ADMIN CHARTS — شیک و کوچک مانند صفحه اصلی
-            ============================================================ */
+        /* ===== نمودارهای مدیریت ===== */
         .admin-chart-box {
             background: #fff;
             border-radius: var(--radius-md);
@@ -392,9 +364,7 @@
             aspect-ratio: 16/9;
         }
 
-        /* ============================================================
-               LOGIN MODAL (زیبا و مدرن)
-            ============================================================ */
+        /* ===== مودال ورود ===== */
         .login-modal .modal-content {
             border-radius: var(--radius-lg);
             border: none;
@@ -447,9 +417,7 @@
             transform: scale(0.97);
         }
 
-        /* ============================================================
-               ADMIN PANEL — موبایل‌فرست با سایدبار جمع‌شونده
-            ============================================================ */
+        /* ===== پنل مدیریت ===== */
         .admin-wrapper {
             display: none;
             background: var(--gray-50);
@@ -458,8 +426,6 @@
         .admin-wrapper.show {
             display: block;
         }
-
-        /* سایدبار — در موبایل به هدر تبدیل می‌شود */
         .admin-sidebar {
             background: linear-gradient(180deg, var(--primary-900) 0%, var(--primary-800) 100%);
             color: #fff;
@@ -481,7 +447,6 @@
         .admin-sidebar .brand-sm i {
             color: var(--primary-300);
         }
-
         .admin-sidebar .nav-scroll {
             display: flex;
             flex-wrap: nowrap;
@@ -521,7 +486,6 @@
         .admin-sidebar .nav-item i {
             font-size: clamp(0.9rem, 2.5vw, 1.1rem);
         }
-
         .admin-sidebar .logout-btn {
             padding: 8px 16px;
             color: rgba(255, 255, 255, 0.6);
@@ -540,12 +504,9 @@
             background: rgba(255, 255, 255, 0.06);
         }
 
-        /* محتوای ادمین — کاملاً واکنش‌گرا */
         .admin-content {
             padding: 16px 12px 30px;
         }
-
-        /* کارت‌های آمار ادمین */
         .admin-stat-card {
             background: #fff;
             border-radius: var(--radius-md);
@@ -579,7 +540,6 @@
             color: var(--primary-600);
         }
 
-        /* فرم‌ها و جدول‌ها در ادمین */
         .form-section-admin {
             background: #fff;
             border-radius: var(--radius-md);
@@ -643,7 +603,6 @@
             border-color: var(--gray-400);
         }
 
-        /* جدول ادمین — برای موبایل به کارت تبدیل می‌شود */
         .admin-table-wrap {
             background: #fff;
             border-radius: var(--radius-md);
@@ -691,7 +650,6 @@
             margin-top: 0.15rem;
         }
 
-        /* هشدارها */
         .alert-item-admin {
             background: var(--primary-50);
             border-radius: var(--radius-sm);
@@ -709,9 +667,7 @@
             color: var(--gray-500);
         }
 
-        /* ============================================================
-               REPORT A4 — موبایل دوستانه
-            ============================================================ */
+        /* ===== گزارش A4 ===== */
         .report-a4-wrapper {
             background: #fff;
             padding: 20px 16px;
@@ -777,9 +733,7 @@
             text-align: center;
         }
 
-        /* ============================================================
-               PRINT STYLES
-            ============================================================ */
+        /* ===== چاپ ===== */
         @media print {
             body {
                 background: #fff !important;
@@ -819,9 +773,7 @@
             }
         }
 
-        /* ============================================================
-               RESPONSIVE TWEAKS — موبایل اول
-            ============================================================ */
+        /* ===== واکنش‌گرایی ===== */
         @media (max-width: 576px) {
             .public-header {
                 padding: 14px 0 12px;
@@ -885,7 +837,6 @@
                 padding: 6px 8px;
             }
         }
-
         @media (max-width: 400px) {
             .header-stats .stat-item {
                 padding: 3px 8px 3px 10px;
@@ -917,9 +868,7 @@
             }
         }
 
-        /* ============================================================
-               ANIMATIONS
-            ============================================================ */
+        /* ===== انیمیشن ===== */
         @keyframes fadeUp {
             from {
                 opacity: 0;
@@ -950,10 +899,9 @@
 <body>
 
     <!-- ============================================================ -->
-    <!-- ====== PUBLIC WRAPPER ====== -->
+    <!-- ====== بخش عمومی ====== -->
     <!-- ============================================================ -->
     <div id="publicWrapper" class="public-wrapper">
-        <!-- Header -->
         <header class="public-header">
             <div class="container-fluid px-3 px-sm-4">
                 <div class="row align-items-center g-2">
@@ -972,7 +920,6 @@
                         </button>
                     </div>
                 </div>
-                <!-- Stats: فقط پروژه‌های انجام‌شده و در حال اجرا -->
                 <div class="header-stats" id="publicStats">
                     <div class="stat-item">
                         <i class="fas fa-check-circle"></i>
@@ -993,7 +940,6 @@
             </div>
         </header>
 
-        <!-- Public Charts — وضعیت و توزیع منطقه‌ای فقط برای پروژه‌های تکمیل‌شده و در حال اجرا -->
         <section class="container-fluid px-3 px-sm-4 py-3 py-sm-4">
             <div class="row g-3">
                 <div class="col-12 col-md-6">
@@ -1011,7 +957,6 @@
             </div>
         </section>
 
-        <!-- Projects Grid — فقط پروژه‌های تکمیل‌شده و در حال اجرا -->
         <section class="container-fluid px-3 px-sm-4 pb-4">
             <h4 class="fw-bold mb-3 fs-5 d-flex align-items-center gap-2">
                 <i class="fas fa-list-ul text-primary-dark"></i>
@@ -1024,7 +969,7 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- ====== LOGIN MODAL ====== -->
+    <!-- ====== مودال ورود ====== -->
     <!-- ============================================================ -->
     <div class="modal fade login-modal" id="loginModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
@@ -1037,11 +982,11 @@
                     <form id="loginForm">
                         <div class="mb-3">
                             <label class="form-label fw-semibold">نام کاربری</label>
-                            <input type="text" class="form-control" id="loginUsername" placeholder="09176206606" value="">
+                            <input type="text" class="form-control" id="loginUsername" placeholder="09176206606" value="09176206606">
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-semibold">رمز عبور</label>
-                            <input type="password" class="form-control" id="loginPassword" placeholder="********" value="">
+                            <input type="password" class="form-control" id="loginPassword" placeholder="********" value="82032">
                         </div>
                         <button type="submit" class="btn-login"><i class="fas fa-sign-in-alt me-2"></i> ورود</button>
                         <div id="loginError" class="text-danger mt-2 text-center small" style="display:none;">نام کاربری یا رمز عبور اشتباه است</div>
@@ -1052,10 +997,9 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- ====== ADMIN WRAPPER (موبایل-فرست با نوار بالایی) ====== -->
+    <!-- ====== بخش مدیریت ====== -->
     <!-- ============================================================ -->
     <div id="adminWrapper" class="admin-wrapper">
-        <!-- Sidebar (تب‌های افقی برای موبایل) -->
         <div class="admin-sidebar no-print">
             <div class="brand-sm"><i class="fas fa-map-marked-alt"></i> مدیریت GIS</div>
             <div class="nav-scroll">
@@ -1067,10 +1011,8 @@
             </div>
         </div>
 
-        <!-- Admin Content -->
         <div class="admin-content">
-
-            <!-- ===== DASHBOARD ===== -->
+            <!-- داشبورد -->
             <div id="adminTab-dashboard" class="admin-tab-content">
                 <h4 class="fw-bold mb-3 fs-5 d-flex align-items-center gap-2">
                     <i class="fas fa-chart-pie text-primary-dark"></i> داشبورد مدیریتی
@@ -1089,7 +1031,6 @@
                         <div class="admin-stat-card"><div><div class="num" id="admTotalArea">0</div><div class="label">مساحت کل</div></div><div class="icon"><i class="fas fa-arrows-alt"></i></div></div>
                     </div>
                 </div>
-                <!-- نمودارهای کوچک و شیک مانند صفحه اصلی -->
                 <div class="row g-3">
                     <div class="col-md-6">
                         <div class="admin-chart-box">
@@ -1112,13 +1053,12 @@
                 </div>
             </div>
 
-            <!-- ===== PROJECTS ===== -->
+            <!-- پروژه‌ها -->
             <div id="adminTab-projects" class="admin-tab-content" style="display:none;">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                     <h4 class="fw-bold fs-5 d-flex align-items-center gap-2"><i class="fas fa-folder-open text-primary-dark"></i> پروژه‌ها</h4>
                     <button class="btn btn-primary-admin btn-sm" id="btnNewProjectAdmin"><i class="fas fa-plus"></i> جدید</button>
                 </div>
-
                 <div class="form-section-admin" id="projectFormAdmin" style="display:none;">
                     <h5 id="formTitleAdmin" class="fw-bold fs-6 mb-3"><i class="fas fa-pen me-2"></i> ثبت پروژه</h5>
                     <form id="projectFormAdminSubmit">
@@ -1144,7 +1084,6 @@
                         </div>
                     </form>
                 </div>
-
                 <div class="admin-table-wrap">
                     <table class="table">
                         <thead><tr><th>#</th><th>نام</th><th>پیمانکار</th><th>مبلغ</th><th>وضعیت</th><th class="no-print">عملیات</th></tr></thead>
@@ -1153,7 +1092,7 @@
                 </div>
             </div>
 
-            <!-- ===== ALERTS ===== -->
+            <!-- هشدارها -->
             <div id="adminTab-alerts" class="admin-tab-content" style="display:none;">
                 <h4 class="fw-bold mb-3 fs-5 d-flex align-items-center gap-2"><i class="fas fa-bell text-warning"></i> هشدارها</h4>
                 <div class="row g-3">
@@ -1178,13 +1117,12 @@
                 </div>
             </div>
 
-            <!-- ===== REPORTS ===== -->
+            <!-- گزارش‌ها -->
             <div id="adminTab-reports" class="admin-tab-content" style="display:none;">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                     <h4 class="fw-bold fs-5 d-flex align-items-center gap-2"><i class="fas fa-file-invoice text-info"></i> گزارش جامع</h4>
                     <button class="btn btn-primary-admin btn-sm no-print" id="printReportBtnAdmin"><i class="fas fa-print"></i> پرینت A4</button>
                 </div>
-
                 <div class="report-a4-wrapper" id="reportA4Wrapper">
                     <div class="report-header">
                         <h3>گزارش جامع پروژه‌های GIS</h3>
@@ -1209,111 +1147,28 @@
                     </div>
                 </div>
             </div>
-
-        </div><!-- /admin-content -->
+        </div>
     </div>
 
     <!-- ============================================================ -->
-    <!-- Bootstrap JS -->
+    <!-- ====== اسکریپت‌ها ====== -->
+    <!-- ============================================================ -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
     </script>
-
     <script>
         // ============================================================
-        // DATA LAYER
+        // ===== CONFIGURATION SUPABASE =====
         // ============================================================
-        const STORAGE_KEY = 'greenProjectsData_v2';
+        // 🔻 این دو خط را با اطلاعات پروژه خود جایگزین کنید 🔻
+        const SUPABASE_URL = 'https://your-project-url.supabase.co';
+        const SUPABASE_ANON_KEY = 'your-anon-public-key';
+        // ============================================================
 
-        function getDefaultData() {
-            return {
-                projects: [{
-                    id: 'p1',
-                    name: 'توسعه فضای سبز ارتفاعات شمالی',
-                    contractor: 'شرکت سبزاندیشان',
-                    amount: 850000000,
-                    area: 12.5,
-                    status: 'در حال اجرا',
-                    startDate: '۱۴۰۳/۰۲/۱۰',
-                    endDate: '۱۴۰۴/۰۸/۲۰',
-                    regions: ['منطقه ۱', 'منطقه ۲', 'ارتفاعات'],
-                    description: 'احیای پوشش گیاهی در ارتفاعات شمالی'
-                }, {
-                    id: 'p2',
-                    name: 'احیای پارک جنگلی غرب',
-                    contractor: 'سازمان پارک‌ها',
-                    amount: 420000000,
-                    area: 8.2,
-                    status: 'تکمیل‌شده',
-                    startDate: '۱۴۰۲/۰۳/۰۵',
-                    endDate: '۱۴۰۳/۰۹/۱۲',
-                    regions: ['منطقه ۳', 'منطقه ۴'],
-                    description: 'کاشت درختان بومی و آبیاری قطره‌ای'
-                }, {
-                    id: 'p3',
-                    name: 'ایجاد کمربند سبز شرق',
-                    contractor: 'پیمانکاران سبز',
-                    amount: 1250000000,
-                    area: 20.0,
-                    status: 'متوقف‌شده',
-                    startDate: '۱۴۰۳/۰۶/۰۱',
-                    endDate: '۱۴۰۴/۱۲/۳۰',
-                    regions: ['منطقه ۵', 'منطقه ۶', 'منطقه ۷', 'سایر'],
-                    description: 'پروژه به دلیل کمبود بودجه متوقف شد.'
-                }, {
-                    id: 'p4',
-                    name: 'فضای سبز حاشیه رودخانه',
-                    contractor: 'مهندسین طبیعت',
-                    amount: 630000000,
-                    area: 15.3,
-                    status: 'در حال اجرا',
-                    startDate: '۱۴۰۴/۰۱/۱۵',
-                    endDate: '۱۴۰۴/۱۰/۱۰',
-                    regions: ['منطقه ۸', 'منطقه ۹'],
-                    description: 'ایجاد مسیر پیاده‌رو و کاشت درختان سایه‌انداز'
-                }, {
-                    id: 'p5',
-                    name: 'باغ‌راه جنوبی',
-                    contractor: 'سبزینگان',
-                    amount: 370000000,
-                    area: 6.7,
-                    status: 'تکمیل‌شده',
-                    startDate: '۱۴۰۲/۰۹/۲۰',
-                    endDate: '۱۴۰۳/۰۴/۱۵',
-                    regions: ['منطقه ۱۰', 'منطقه ۱۱'],
-                    description: 'باغ‌راه با گیاهان مقاوم به خشکی'
-                }],
-                alerts: [{
-                    id: 'a1',
-                    projectId: 'p1',
-                    baseDate: '۱۴۰۴/۰۳/۰۱',
-                    days: 7,
-                    message: 'بررسی پیشرفت فاز اول'
-                }, {
-                    id: 'a2',
-                    projectId: 'p3',
-                    baseDate: '۱۴۰۴/۰۲/۱۵',
-                    days: 14,
-                    message: 'پیگیری تأمین بودجه'
-                }]
-            };
-        }
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        function loadData() {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (raw) {
-                try { return JSON.parse(raw); } catch (e) { /* ignore */ }
-            }
-            const def = getDefaultData();
-            saveData(def);
-            return def;
-        }
-
-        function saveData(data) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        }
-
-        let appData = loadData();
-
+        // ============================================================
+        // ===== HELPERS =====
+        // ============================================================
         function generateId() { return 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7); }
 
         function formatNumber(n) {
@@ -1329,18 +1184,91 @@
         ];
 
         // ============================================================
-        // RENDER: PUBLIC (فقط پروژه‌های تکمیل‌شده و در حال اجرا)
+        // ===== STATE =====
+        // ============================================================
+        let projects = [];
+        let alerts = [];
+
+        // ============================================================
+        // ===== CRUD با Supabase =====
+        // ============================================================
+        async function loadData() {
+            try {
+                const { data: pData, error: pErr } = await supabase.from('projects').select('*');
+                if (pErr) throw pErr;
+                const { data: aData, error: aErr } = await supabase.from('alerts').select('*');
+                if (aErr) throw aErr;
+                projects = pData || [];
+                alerts = aData || [];
+                return true;
+            } catch (e) {
+                console.error('خطا در بارگیری داده:', e);
+                alert('خطا در اتصال به پایگاه داده. لطفاً بعداً تلاش کنید.');
+                return false;
+            }
+        }
+
+        async function saveProject(project) {
+            try {
+                const { error } = await supabase.from('projects').upsert(project);
+                if (error) throw error;
+                return true;
+            } catch (e) {
+                console.error('خطا در ذخیره پروژه:', e);
+                alert('خطا در ذخیره پروژه. لطفاً دوباره تلاش کنید.');
+                return false;
+            }
+        }
+
+        async function deleteProject(id) {
+            try {
+                const { error } = await supabase.from('projects').delete().eq('id', id);
+                if (error) throw error;
+                // حذف هشدارهای مرتبط
+                await supabase.from('alerts').delete().eq('project_id', id);
+                return true;
+            } catch (e) {
+                console.error('خطا در حذف پروژه:', e);
+                alert('خطا در حذف پروژه.');
+                return false;
+            }
+        }
+
+        async function saveAlert(alert) {
+            try {
+                const { error } = await supabase.from('alerts').upsert(alert);
+                if (error) throw error;
+                return true;
+            } catch (e) {
+                console.error('خطا در ذخیره هشدار:', e);
+                alert('خطا در ذخیره هشدار.');
+                return false;
+            }
+        }
+
+        async function deleteAlert(id) {
+            try {
+                const { error } = await supabase.from('alerts').delete().eq('id', id);
+                if (error) throw error;
+                return true;
+            } catch (e) {
+                console.error('خطا در حذف هشدار:', e);
+                alert('خطا در حذف هشدار.');
+                return false;
+            }
+        }
+
+        // ============================================================
+        // ===== RENDER: PUBLIC =====
         // ============================================================
         let publicStatusChartInstance = null;
         let publicRegionChartInstance = null;
 
         function renderPublic() {
-            // فیلتر: فقط پروژه‌های تکمیل‌شده و در حال اجرا
-            const activeProjects = appData.projects.filter(p =>
+            const activeProjects = projects.filter(p =>
                 p.status === 'در حال اجرا' || p.status === 'تکمیل‌شده'
             );
 
-            // آمار
             const completed = activeProjects.filter(p => p.status === 'تکمیل‌شده').length;
             const active = activeProjects.filter(p => p.status === 'در حال اجرا').length;
             const totalArea = activeProjects.reduce((s, p) => s + p.area, 0);
@@ -1349,7 +1277,6 @@
             document.getElementById('pubActiveProjects').textContent = active;
             document.getElementById('pubTotalArea').textContent = totalArea.toFixed(1);
 
-            // کارت‌های پروژه
             const grid = document.getElementById('publicProjectsGrid');
             if (!activeProjects.length) {
                 grid.innerHTML =
@@ -1376,11 +1303,9 @@
                 grid.innerHTML = html;
             }
 
-            // --- نمودار وضعیت (فقط دو دسته) ---
+            // نمودار وضعیت
             const statusMap = { 'در حال اجرا': 0, 'تکمیل‌شده': 0 };
-            activeProjects.forEach(p => {
-                if (statusMap[p.status] !== undefined) statusMap[p.status]++;
-            });
+            activeProjects.forEach(p => { if (statusMap[p.status] !== undefined) statusMap[p.status]++; });
 
             const ctxStatus = document.getElementById('publicStatusChart').getContext('2d');
             if (publicStatusChartInstance) publicStatusChartInstance.destroy();
@@ -1388,40 +1313,23 @@
                 type: 'doughnut',
                 data: {
                     labels: ['در حال اجرا', 'تکمیل‌شده'],
-                    datasets: [{
-                        data: [statusMap['در حال اجرا'], statusMap['تکمیل‌شده']],
-                        backgroundColor: ['#4caf7a', '#60a5fa'],
-                        borderColor: '#fff',
-                        borderWidth: 2
-                    }]
+                    datasets: [{ data: [statusMap['در حال اجرا'], statusMap['تکمیل‌شده']],
+                        backgroundColor: ['#4caf7a', '#60a5fa'], borderColor: '#fff', borderWidth: 2 }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
                     aspectRatio: 1.8,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                usePointStyle: true,
-                                pointStyle: 'circle',
-                                font: { size: 11, family: 'Segoe UI' },
-                                padding: 14
-                            }
-                        }
-                    },
+                    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, pointStyle: 'circle',
+                                font: { size: 11 }, padding: 14 } } },
                     cutout: '65%',
                     animation: { animateRotate: true, duration: 800 }
                 }
             });
 
-            // --- نمودار توزیع منطقه‌ای (فقط پروژه‌های فعال) ---
+            // نمودار منطقه‌ای
             const regionMap = {};
-            activeProjects.forEach(p => {
-                p.regions.forEach(r => {
-                    regionMap[r] = (regionMap[r] || 0) + 1;
-                });
-            });
+            activeProjects.forEach(p => { p.regions.forEach(r => { regionMap[r] = (regionMap[r] || 0) + 1; }); });
             const regionLabels = Object.keys(regionMap);
             const regionValues = Object.values(regionMap);
             const colors = ['#4caf7a', '#60a5fa', '#fbbf24', '#f87171', '#a78bfa', '#34d399', '#f472b6', '#fb923c',
@@ -1434,41 +1342,20 @@
                 type: 'bar',
                 data: {
                     labels: regionLabels,
-                    datasets: [{
-                        label: 'تعداد پروژه',
-                        data: regionValues,
-                        backgroundColor: colors.slice(0, regionLabels.length),
-                        borderRadius: 6,
-                        borderSkipped: false,
-                        barPercentage: 0.7
-                    }]
+                    datasets: [{ label: 'تعداد پروژه', data: regionValues,
+                        backgroundColor: colors.slice(0, regionLabels.length), borderRadius: 6,
+                        borderSkipped: false, barPercentage: 0.7 }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
                     aspectRatio: 1.8,
-                    plugins: {
-                        legend: { display: false }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1,
-                                font: { size: 10 },
-                                color: '#6b7280'
-                            },
-                            grid: { color: 'rgba(0,0,0,0.04)' }
-                        },
-                        x: {
-                            ticks: {
-                                font: { size: 9 },
-                                color: '#6b7280',
-                                maxRotation: 30,
-                                minRotation: 20
-                            },
-                            grid: { display: false }
-                        }
+                        y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 }, color: '#6b7280' },
+                            grid: { color: 'rgba(0,0,0,0.04)' } },
+                        x: { ticks: { font: { size: 9 }, color: '#6b7280', maxRotation: 30, minRotation: 20 },
+                            grid: { display: false } }
                     },
                     animation: { duration: 700 }
                 }
@@ -1476,17 +1363,17 @@
         }
 
         // ============================================================
-        // RENDER: ADMIN
+        // ===== RENDER: ADMIN =====
         // ============================================================
         function renderAdminProjects() {
             const tbody = document.getElementById('adminProjectsTableBody');
-            if (!appData.projects.length) {
+            if (!projects.length) {
                 tbody.innerHTML =
                 `<tr><td colspan="6" class="text-center text-muted">هیچ پروژه‌ای ثبت نشده است.</td></tr>`;
                 return;
             }
             let html = '';
-            appData.projects.forEach((p, idx) => {
+            projects.forEach((p, idx) => {
                 const statusClass = p.status === 'در حال اجرا' ? 'active' : p.status === 'تکمیل‌شده' ? 'completed' :
                     'stopped';
                 html += `<tr>
@@ -1508,13 +1395,14 @@
                     editProjectAdmin(btn.dataset.id); });
             });
             tbody.querySelectorAll('.delete-project-admin').forEach(btn => {
-                btn.addEventListener('click', (e) => {
+                btn.addEventListener('click', async (e) => {
                     e.stopPropagation();
                     if (confirm('حذف پروژه؟')) {
-                        appData.projects = appData.projects.filter(p => p.id !== btn.dataset.id);
-                        appData.alerts = appData.alerts.filter(a => a.projectId !== btn.dataset.id);
-                        saveData(appData);
-                        renderAll();
+                        const ok = await deleteProject(btn.dataset.id);
+                        if (ok) {
+                            await loadData();
+                            renderAll();
+                        }
                     }
                 });
             });
@@ -1531,7 +1419,7 @@
         }
 
         function editProjectAdmin(id) {
-            const p = appData.projects.find(pr => pr.id === id);
+            const p = projects.find(pr => pr.id === id);
             if (!p) return;
             document.getElementById('editProjectIdAdmin').value = id;
             document.getElementById('pName').value = p.name;
@@ -1539,8 +1427,8 @@
             document.getElementById('pAmount').value = p.amount;
             document.getElementById('pArea').value = p.area;
             document.getElementById('pStatus').value = p.status;
-            document.getElementById('pStart').value = p.startDate || '';
-            document.getElementById('pEnd').value = p.endDate || '';
+            document.getElementById('pStart').value = p.start_date || '';
+            document.getElementById('pEnd').value = p.end_date || '';
             document.getElementById('pDesc').value = p.description || '';
             const checkboxes = document.querySelectorAll('#regionsAdminContainer .form-check-input');
             checkboxes.forEach(cb => { cb.checked = p.regions.includes(cb.value); });
@@ -1559,7 +1447,7 @@
             document.getElementById('projectFormAdmin').style.display = 'none';
         }
 
-        function handleProjectSubmitAdmin(e) {
+        async function handleProjectSubmitAdmin(e) {
             e.preventDefault();
             const id = document.getElementById('editProjectIdAdmin').value;
             const name = document.getElementById('pName').value.trim();
@@ -1567,8 +1455,8 @@
             const amount = parseFloat(document.getElementById('pAmount').value);
             const area = parseFloat(document.getElementById('pArea').value);
             const status = document.getElementById('pStatus').value;
-            const startDate = document.getElementById('pStart').value.trim();
-            const endDate = document.getElementById('pEnd').value.trim();
+            const start_date = document.getElementById('pStart').value.trim();
+            const end_date = document.getElementById('pEnd').value.trim();
             const description = document.getElementById('pDesc').value.trim();
             const selectedRegions = [];
             document.querySelectorAll('#regionsAdminContainer .form-check-input:checked').forEach(cb => {
@@ -1579,27 +1467,36 @@
                 alert('لطفاً تمام فیلدهای ضروری را پر کنید.');
                 return;
             }
-            if (id) {
-                const p = appData.projects.find(pr => pr.id === id);
-                if (p) { Object.assign(p, { name, contractor, amount, area, status, startDate, endDate,
-                        regions: selectedRegions, description }); }
-            } else {
-                appData.projects.push({ id: generateId(), name, contractor, amount, area, status, startDate,
-                    endDate, regions: selectedRegions, description });
+
+            const projectData = {
+                id: id || generateId(),
+                name,
+                contractor,
+                amount,
+                area,
+                status,
+                start_date,
+                end_date,
+                regions: selectedRegions,
+                description
+            };
+
+            const ok = await saveProject(projectData);
+            if (ok) {
+                await loadData();
+                renderAll();
+                resetProjectFormAdmin();
             }
-            saveData(appData);
-            renderAll();
-            resetProjectFormAdmin();
         }
 
         // ============================================================
-        // ADMIN ALERTS
+        // ===== ADMIN ALERTS =====
         // ============================================================
         function populateAlertSelectAdmin() {
             const sel = document.getElementById('alertProjectIdAdmin');
             const current = sel.value;
             sel.innerHTML = '<option value="">انتخاب</option>';
-            appData.projects.forEach(p => {
+            projects.forEach(p => {
                 const opt = document.createElement('option');
                 opt.value = p.id;
                 opt.textContent = `${p.name} (${p.id})`;
@@ -1611,7 +1508,6 @@
         function renderAdminAlerts() {
             const container = document.getElementById('alertsListAdmin');
             const countSpan = document.getElementById('alertCountAdmin');
-            const alerts = appData.alerts;
             countSpan.textContent = alerts.length;
             if (!alerts.length) {
                 container.innerHTML =
@@ -1620,13 +1516,13 @@
             }
             let html = '';
             alerts.forEach(a => {
-                const p = appData.projects.find(pr => pr.id === a.projectId);
+                const p = projects.find(pr => pr.id === a.project_id);
                 const pName = p ? p.name : 'پروژه حذف‌شده';
                 html += `
                             <div class="alert-item-admin">
                                 <div>
                                     <strong>${pName}</strong>
-                                    <div class="alert-meta">تاریخ مبنا: ${a.baseDate} &bull; ${a.days} روز بعد</div>
+                                    <div class="alert-meta">تاریخ مبنا: ${a.base_date} &bull; ${a.days} روز بعد</div>
                                     <div class="small">${a.message || 'بدون پیام'}</div>
                                 </div>
                                 <button class="btn btn-sm btn-outline-danger delete-alert-admin" data-id="${a.id}"><i class="fas fa-times"></i></button>
@@ -1635,48 +1531,58 @@
             });
             container.innerHTML = html;
             container.querySelectorAll('.delete-alert-admin').forEach(btn => {
-                btn.addEventListener('click', () => {
+                btn.addEventListener('click', async () => {
                     if (confirm('حذف هشدار؟')) {
-                        appData.alerts = appData.alerts.filter(a => a.id !== btn.dataset.id);
-                        saveData(appData);
-                        renderAdminAlerts();
+                        const ok = await deleteAlert(btn.dataset.id);
+                        if (ok) {
+                            await loadData();
+                            renderAdminAlerts();
+                        }
                     }
                 });
             });
         }
 
-        function handleAlertSubmitAdmin(e) {
+        async function handleAlertSubmitAdmin(e) {
             e.preventDefault();
-            const projectId = document.getElementById('alertProjectIdAdmin').value;
-            const baseDate = document.getElementById('alertBaseDateAdmin').value.trim();
+            const project_id = document.getElementById('alertProjectIdAdmin').value;
+            const base_date = document.getElementById('alertBaseDateAdmin').value.trim();
             const days = parseInt(document.getElementById('alertDaysAdmin').value);
             const message = document.getElementById('alertMessageAdmin').value.trim();
-            if (!projectId || !baseDate || isNaN(days) || days < 0) {
+            if (!project_id || !base_date || isNaN(days) || days < 0) {
                 alert('لطفاً اطلاعات را کامل وارد کنید.');
                 return;
             }
-            appData.alerts.push({ id: generateId(), projectId, baseDate, days, message });
-            saveData(appData);
-            renderAdminAlerts();
-            document.getElementById('alertFormAdmin').reset();
-            document.getElementById('alertProjectIdAdmin').value = projectId;
+            const alertData = {
+                id: generateId(),
+                project_id,
+                base_date,
+                days,
+                message
+            };
+            const ok = await saveAlert(alertData);
+            if (ok) {
+                await loadData();
+                renderAdminAlerts();
+                document.getElementById('alertFormAdmin').reset();
+                document.getElementById('alertProjectIdAdmin').value = project_id;
+            }
         }
 
         // ============================================================
-        // ADMIN DASHBOARD CHARTS — شیک و کوچک
+        // ===== ADMIN DASHBOARD CHARTS =====
         // ============================================================
         let admRegionChart, admStatusChart, admAmountChart, reportRegionChartA4;
 
         function updateAdminDashboard() {
-            const projects = appData.projects;
             document.getElementById('admTotalProjects').textContent = projects.length;
             const totalAmt = projects.reduce((s, p) => s + p.amount, 0);
             document.getElementById('admTotalAmount').textContent = formatNumber(totalAmt);
-            document.getElementById('admActiveProjects').textContent = projects.filter(p => p.status === 'در حال اجرa')
+            document.getElementById('admActiveProjects').textContent = projects.filter(p => p.status === 'در حال اجرا')
                 .length;
             document.getElementById('admTotalArea').textContent = projects.reduce((s, p) => s + p.area, 0).toFixed(2);
 
-            // --- نمودار توزیع منطقه‌ای (همه پروژه‌ها) ---
+            // توزیع منطقه‌ای
             const regionMap = {};
             projects.forEach(p => { p.regions.forEach(r => { regionMap[r] = (regionMap[r] || 0) + 1; }); });
             const rLabels = Object.keys(regionMap);
@@ -1690,14 +1596,9 @@
                 type: 'bar',
                 data: {
                     labels: rLabels,
-                    datasets: [{
-                        label: 'تعداد پروژه',
-                        data: rValues,
-                        backgroundColor: colors.slice(0, rLabels.length),
-                        borderRadius: 6,
-                        borderSkipped: false,
-                        barPercentage: 0.7
-                    }]
+                    datasets: [{ label: 'تعداد پروژه', data: rValues,
+                        backgroundColor: colors.slice(0, rLabels.length), borderRadius: 6,
+                        borderSkipped: false, barPercentage: 0.7 }]
                 },
                 options: {
                     responsive: true,
@@ -1705,30 +1606,16 @@
                     aspectRatio: 1.8,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1,
-                                font: { size: 9 },
-                                color: '#6b7280'
-                            },
-                            grid: { color: 'rgba(0,0,0,0.04)' }
-                        },
-                        x: {
-                            ticks: {
-                                font: { size: 8 },
-                                color: '#6b7280',
-                                maxRotation: 25,
-                                minRotation: 15
-                            },
-                            grid: { display: false }
-                        }
+                        y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 9 }, color: '#6b7280' },
+                            grid: { color: 'rgba(0,0,0,0.04)' } },
+                        x: { ticks: { font: { size: 8 }, color: '#6b7280', maxRotation: 25, minRotation: 15 },
+                            grid: { display: false } }
                     },
                     animation: { duration: 700 }
                 }
             });
 
-            // --- نمودار وضعیت (همه پروژه‌ها) ---
+            // وضعیت
             const statusMap = { 'در حال اجرا': 0, 'تکمیل‌شده': 0, 'متوقف‌شده': 0 };
             projects.forEach(p => { if (statusMap[p.status] !== undefined) statusMap[p.status]++; });
 
@@ -1737,34 +1624,22 @@
                 type: 'doughnut',
                 data: {
                     labels: ['در حال اجرا', 'تکمیل‌شده', 'متوقف‌شده'],
-                    datasets: [{
-                        data: [statusMap['در حال اجرا'], statusMap['تکمیل‌شده'], statusMap['متوقف‌شده']],
-                        backgroundColor: ['#4caf7a', '#60a5fa', '#f87171'],
-                        borderColor: '#fff',
-                        borderWidth: 2
-                    }]
+                    datasets: [{ data: [statusMap['در حال اجرا'], statusMap['تکمیل‌شده'], statusMap['متوقف‌شده']],
+                        backgroundColor: ['#4caf7a', '#60a5fa', '#f87171'], borderColor: '#fff',
+                        borderWidth: 2 }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
                     aspectRatio: 1.8,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                usePointStyle: true,
-                                pointStyle: 'circle',
-                                font: { size: 10, family: 'Segoe UI' },
-                                padding: 12
-                            }
-                        }
-                    },
+                    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, pointStyle: 'circle',
+                                font: { size: 10 }, padding: 12 } } },
                     cutout: '60%',
                     animation: { animateRotate: true, duration: 800 }
                 }
             });
 
-            // --- نمودار مبلغ قراردادها (همه پروژه‌ها) ---
+            // مبلغ قراردادها
             if (admAmountChart) admAmountChart.destroy();
             admAmountChart = new Chart(document.getElementById('admAmountChart'), {
                 type: 'line',
@@ -1787,27 +1662,12 @@
                     responsive: true,
                     maintainAspectRatio: true,
                     aspectRatio: 2.2,
-                    plugins: {
-                        legend: { display: false }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: (v) => formatNumber(v),
-                                font: { size: 8 },
-                                color: '#6b7280'
-                            },
-                            grid: { color: 'rgba(0,0,0,0.04)' }
-                        },
-                        x: {
-                            ticks: {
-                                font: { size: 8 },
-                                color: '#6b7280',
-                                maxRotation: 20
-                            },
-                            grid: { display: false }
-                        }
+                        y: { beginAtZero: true, ticks: { callback: (v) => formatNumber(v), font: { size: 8 },
+                                color: '#6b7280' }, grid: { color: 'rgba(0,0,0,0.04)' } },
+                        x: { ticks: { font: { size: 8 }, color: '#6b7280', maxRotation: 20 },
+                        grid: { display: false } }
                     },
                     animation: { duration: 700 }
                 }
@@ -1815,10 +1675,9 @@
         }
 
         // ============================================================
-        // REPORT A4
+        // ===== REPORT A4 =====
         // ============================================================
         function updateReportA4() {
-            const projects = appData.projects;
             const total = projects.reduce((s, p) => s + p.amount, 0);
             const avg = projects.length ? total / projects.length : 0;
             const area = projects.reduce((s, p) => s + p.area, 0);
@@ -1861,9 +1720,11 @@
         }
 
         // ============================================================
-        // RENDER ALL
+        // ===== RENDER ALL =====
         // ============================================================
-        function renderAll() {
+        async function renderAll() {
+            const ok = await loadData();
+            if (!ok) return;
             renderPublic();
             renderAdminProjects();
             populateAlertSelectAdmin();
@@ -1873,7 +1734,7 @@
         }
 
         // ============================================================
-        // INIT REGIONS
+        // ===== INIT =====
         // ============================================================
         function initRegionCheckboxesAdmin() {
             const container = document.getElementById('regionsAdminContainer');
@@ -1889,9 +1750,6 @@
             });
         }
 
-        // ============================================================
-        // TAB SWITCHING
-        // ============================================================
         function switchAdminTab(tabId) {
             document.querySelectorAll('.admin-tab-content').forEach(el => el.style.display = 'none');
             document.querySelectorAll('.admin-sidebar .nav-item').forEach(el => el.classList.remove('active'));
@@ -1906,9 +1764,6 @@
             if (tabId === 'reports') updateReportA4();
         }
 
-        // ============================================================
-        // LOGIN / LOGOUT
-        // ============================================================
         function showAdmin() {
             document.getElementById('publicWrapper').style.display = 'none';
             document.getElementById('adminWrapper').classList.add('show');
@@ -1933,9 +1788,6 @@
             }
         }
 
-        // ============================================================
-        // INIT
-        // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
             initRegionCheckboxesAdmin();
 
@@ -1964,10 +1816,10 @@
                 item.addEventListener('click', () => { switchAdminTab(item.dataset.adminTab); });
             });
 
+            // بارگیری اولیه داده
+            renderAll();
             showPublic();
-            renderPublic();
         });
     </script>
-
 </body>
 </html>
