@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سامانه مدیریت پروژه‌های GIS</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>سامانه جامع GIS فضای سبز شیراز</title>
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
     </script>
@@ -18,7 +20,7 @@
         }
         body {
             font-family: 'Segoe UI', Tahoma, sans-serif;
-            background: #f0f6fc;
+            background: #f0f4f0;
             color: #1e293b;
             direction: rtl;
         }
@@ -27,14 +29,14 @@
             height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #e9edf2;
+            background: #e8ede8;
         }
         ::-webkit-scrollbar-thumb {
-            background: #94a3b8;
+            background: #2d7a3a;
             border-radius: 8px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #2d7a3a;
+            background: #1f5e2a;
         }
 
         /* ===== PUBLIC PAGE ===== */
@@ -65,33 +67,32 @@
             min-height: 100vh;
         }
 
-        /* ===== PUBLIC NAV ===== */
+        /* ===== NAV ===== */
         .public-nav {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            padding: 14px 32px;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(16px);
+            padding: 12px 36px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 16px;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.06);
             border-bottom: 1px solid rgba(255, 255, 255, 0.3);
             position: sticky;
             top: 0;
             z-index: 100;
-            transition: all 0.3s ease;
         }
         .public-nav .brand {
             display: flex;
             align-items: center;
             gap: 12px;
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 800;
             color: #0f172a;
         }
         .public-nav .brand i {
-            font-size: 30px;
+            font-size: 32px;
             background: linear-gradient(135deg, #2d7a3a, #0ea5e9);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -126,46 +127,42 @@
             transform: translateY(-3px) scale(1.02);
             box-shadow: 0 8px 28px rgba(45, 122, 58, 0.4);
         }
-        .public-nav .login-btn i {
-            -webkit-text-fill-color: #fff;
-        }
 
         /* ===== HERO ===== */
         .public-hero {
-            background: linear-gradient(135deg, #f0fdf4 0%, #dbeafe 50%, #dcfce7 100%);
-            padding: 60px 32px 64px;
+            background: linear-gradient(145deg, #f0fdf4 0%, #dbeafe 40%, #dcfce7 100%);
+            padding: 60px 32px 50px;
             text-align: center;
-            border-bottom: none;
             position: relative;
             overflow: hidden;
         }
         .public-hero::before {
             content: '';
             position: absolute;
-            top: -50%;
-            right: -20%;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(45, 122, 58, 0.08) 0%, transparent 70%);
+            top: -40%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(45, 122, 58, 0.06) 0%, transparent 70%);
             border-radius: 50%;
             pointer-events: none;
         }
         .public-hero::after {
             content: '';
             position: absolute;
-            bottom: -40%;
+            bottom: -30%;
             left: -10%;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(14, 165, 233, 0.07) 0%, transparent 70%);
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(14, 165, 233, 0.05) 0%, transparent 70%);
             border-radius: 50%;
             pointer-events: none;
         }
         .public-hero h1 {
-            font-size: 40px;
+            font-size: 42px;
             font-weight: 900;
             color: #0f172a;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             position: relative;
             z-index: 1;
         }
@@ -177,35 +174,42 @@
         .public-hero p {
             font-size: 19px;
             color: #475569;
-            max-width: 650px;
+            max-width: 720px;
             margin: 0 auto;
             position: relative;
             z-index: 1;
-            line-height: 1.8;
+            line-height: 1.9;
         }
         .public-hero .hero-badges {
             display: flex;
             justify-content: center;
-            gap: 16px;
+            gap: 14px;
             flex-wrap: wrap;
-            margin-top: 20px;
+            margin-top: 22px;
             position: relative;
             z-index: 1;
         }
         .public-hero .hero-badges span {
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(6px);
-            padding: 6px 20px;
+            padding: 8px 24px;
             border-radius: 40px;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 600;
             color: #1e293b;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .public-hero .hero-badges span:hover {
+            transform: translateY(-3px) scale(1.04);
+            box-shadow: 0 8px 30px rgba(45, 122, 58, 0.15);
+            border-color: #2d7a3a;
         }
         .public-hero .hero-badges span i {
             color: #2d7a3a;
-            margin-left: 6px;
+            margin-left: 8px;
         }
 
         /* ===== STATS ===== */
@@ -213,37 +217,68 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 20px;
-            padding: 28px 32px;
+            padding: 24px 32px;
             max-width: 1300px;
-            margin: -20px auto 0;
+            margin: -24px auto 0;
             position: relative;
             z-index: 2;
         }
         .public-stat-card {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(8px);
-            border-radius: 24px;
-            padding: 22px 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 28px;
+            padding: 24px 18px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.6);
             text-align: center;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .public-stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #2d7a3a, #0ea5e9, #2d7a3a);
+            background-size: 200% 100%;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .public-stat-card:hover::after {
+            opacity: 1;
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
         }
         .public-stat-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.10);
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: 0 20px 60px rgba(45, 122, 58, 0.15);
             border-color: rgba(45, 122, 58, 0.2);
         }
         .public-stat-card .icon {
-            font-size: 30px;
+            font-size: 34px;
             background: linear-gradient(135deg, #2d7a3a, #0ea5e9);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 4px;
-            opacity: 1;
+            margin-bottom: 6px;
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+        .public-stat-card:hover .icon {
+            transform: scale(1.15) rotate(-5deg);
         }
         .public-stat-card .num {
-            font-size: 34px;
+            font-size: 36px;
             font-weight: 800;
             color: #0f172a;
             background: linear-gradient(135deg, #0f172a, #2d7a3a);
@@ -256,71 +291,65 @@
             margin-top: 4px;
             font-weight: 500;
         }
-
-        /* ===== FILTER TABS ===== */
-        .filter-tabs {
-            display: flex;
-            gap: 10px;
-            padding: 20px 32px 0;
-            max-width: 1300px;
-            margin: 0 auto;
-            flex-wrap: wrap;
+        .public-stat-card .sub-info {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 6px;
+            opacity: 0;
+            max-height: 0;
+            transition: all 0.4s ease;
+            overflow: hidden;
         }
-        .filter-tabs .tab {
-            padding: 10px 28px;
-            border-radius: 40px;
-            border: 2px solid #e2e8f0;
-            background: #fff;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: #475569;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        .public-stat-card.active .sub-info {
+            opacity: 1;
+            max-height: 60px;
         }
-        .filter-tabs .tab:hover {
-            border-color: #94a3b8;
-            background: #f8fafc;
-            transform: translateY(-2px);
-        }
-        .filter-tabs .tab.active {
-            background: linear-gradient(135deg, #2d7a3a, #1f5e2a);
-            color: #fff;
-            border-color: #2d7a3a;
-            box-shadow: 0 4px 16px rgba(45, 122, 58, 0.25);
+        .public-stat-card .click-hint {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 6px;
+            opacity: 0.6;
         }
 
-        /* ===== PROJECTS GRID ===== */
-        .public-section {
-            padding: 20px 32px 40px;
-            max-width: 1300px;
-            margin: 0 auto;
-        }
-        .public-section h2 {
-            font-size: 26px;
+        /* ===== SECTIONS ===== */
+        .section-title {
+            font-size: 28px;
             font-weight: 800;
-            margin-bottom: 20px;
+            margin: 36px 32px 18px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             color: #0f172a;
         }
-        .public-section h2 i {
+        .section-title i {
             background: linear-gradient(135deg, #2d7a3a, #0ea5e9);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+        .section-title .badge-count {
+            background: #2d7a3a;
+            color: #fff;
+            font-size: 14px;
+            padding: 2px 16px;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+
         .project-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
             gap: 28px;
+            padding: 0 32px 20px;
+            max-width: 1300px;
+            margin: 0 auto;
         }
+
         .project-card {
             background: #fff;
-            border-radius: 24px;
-            padding: 24px 26px;
-            border: 1px solid rgba(226, 232, 240, 0.6);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            border-radius: 28px;
+            padding: 26px 28px;
+            border: 1px solid rgba(226, 232, 240, 0.5);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative;
             overflow: hidden;
@@ -331,7 +360,7 @@
             top: 0;
             right: 0;
             left: 0;
-            height: 4px;
+            height: 5px;
             background: linear-gradient(90deg, #2d7a3a, #0ea5e9, #2d7a3a);
             background-size: 200% 100%;
             opacity: 0;
@@ -341,35 +370,27 @@
             opacity: 1;
             animation: shimmer 2s infinite;
         }
-        @keyframes shimmer {
-            0% {
-                background-position: 200% 0;
-            }
-            100% {
-                background-position: -200% 0;
-            }
-        }
         .project-card:hover {
             transform: translateY(-8px);
-            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
             border-color: rgba(45, 122, 58, 0.15);
         }
         .project-card .p-name {
             font-size: 19px;
             font-weight: 800;
             color: #0f172a;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
-        .project-card .p-contractor {
+        .project-card .p-name i {
+            color: #2d7a3a;
+            margin-left: 10px;
+            font-size: 18px;
+        }
+        .project-card .p-desc {
             color: #64748b;
             font-size: 14px;
             margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .project-card .p-contractor i {
-            color: #2d7a3a;
+            line-height: 1.6;
         }
         .project-card .p-meta {
             display: flex;
@@ -377,10 +398,10 @@
             gap: 10px 18px;
             font-size: 13px;
             color: #475569;
-            margin: 10px 0;
             background: #f8fafc;
-            padding: 10px 14px;
-            border-radius: 14px;
+            padding: 10px 16px;
+            border-radius: 16px;
+            margin: 10px 0;
         }
         .project-card .p-meta span {
             display: flex;
@@ -389,70 +410,166 @@
         }
         .project-card .p-meta span i {
             color: #2d7a3a;
-            width: 16px;
-        }
-        .project-card .p-regions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin: 10px 0;
-        }
-        .project-card .p-regions .tag {
-            background: #e9edf2;
-            padding: 2px 14px;
-            border-radius: 30px;
-            font-size: 12px;
-            color: #334155;
-            font-weight: 500;
-            transition: 0.2s;
-        }
-        .project-card .p-regions .tag:hover {
-            background: #2d7a3a;
-            color: #fff;
+            width: 18px;
         }
         .project-card .p-status {
             display: inline-block;
-            padding: 4px 20px;
+            padding: 5px 20px;
             border-radius: 30px;
             font-size: 13px;
             font-weight: 700;
             margin-top: 8px;
-            letter-spacing: 0.3px;
         }
-        .p-status.running {
-            background: #dbeafe;
-            color: #1d4ed8;
-        }
-        .p-status.complete {
+        .p-status.done {
             background: #dcfce7;
             color: #15803d;
         }
-        .p-status.stopped {
-            background: #fee2e2;
-            color: #b91c1c;
+        .p-status.progress {
+            background: #fef3c7;
+            color: #b45309;
+        }
+        .p-status.update {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        .p-status.special {
+            background: #f3e8ff;
+            color: #7e22ce;
         }
 
-        /* ===== CHARTS & REGION REPORT ===== */
-        .public-charts {
+        /* ===== PROGRESS SECTION ===== */
+        .progress-section {
+            background: #fff;
+            border-radius: 28px;
+            padding: 30px 32px 32px;
+            margin: 10px 32px 30px;
+            max-width: 1300px;
+            margin-left: auto;
+            margin-right: auto;
+            border: 1px solid rgba(226, 232, 240, 0.5);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
+        }
+        .progress-section .section-title {
+            margin: 0 0 16px 0;
+        }
+        .progress-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .progress-card {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 20px 22px;
+            border: 1px solid #edf2f7;
+            transition: 0.3s ease;
+        }
+        .progress-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+            border-color: #2d7a3a;
+        }
+        .progress-card .p-name {
+            font-size: 17px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 6px;
+        }
+        .progress-card .p-name i {
+            color: #f59e0b;
+            margin-left: 8px;
+        }
+        .progress-card .p-desc {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+        .progress-card .p-regions {
+            font-size: 13px;
+            color: #475569;
+            margin-bottom: 12px;
+        }
+        .progress-card .p-regions i {
+            color: #2d7a3a;
+            width: 18px;
+        }
+        .progress-bar-wrap {
+            background: #e9edf2;
+            border-radius: 30px;
+            height: 10px;
+            overflow: hidden;
+            margin: 8px 0 6px;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 30px;
+            background: linear-gradient(90deg, #f59e0b, #f97316);
+            width: 0%;
+            transition: width 0.8s ease;
+        }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 600;
+        }
+        .progress-label .percent {
+            color: #f59e0b;
+            font-weight: 700;
+        }
+
+        /* ===== MAP ===== */
+        .map-container {
+            padding: 0 32px 20px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+        #map {
+            height: 520px;
+            border-radius: 28px;
+            border: 1px solid rgba(226, 232, 240, 0.5);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
+            z-index: 1;
+        }
+        @keyframes blink {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.15;
+            }
+        }
+        .blink {
+            animation: blink 1.2s ease-in-out infinite;
+        }
+
+        /* ===== CHARTS ===== */
+        .charts-row-public {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 28px;
-            margin-top: 12px;
+            padding: 0 32px 20px;
+            max-width: 1300px;
+            margin: 0 auto;
         }
-        .public-chart-box {
+        .chart-box {
             background: #fff;
-            border-radius: 24px;
+            border-radius: 28px;
             padding: 24px 24px 16px;
-            border: 1px solid rgba(226, 232, 240, 0.6);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
             transition: 0.3s ease;
         }
-        .public-chart-box:hover {
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+        .chart-box:hover {
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
             transform: translateY(-4px);
         }
-        .public-chart-box h3 {
-            font-size: 17px;
+        .chart-box h3 {
+            font-size: 18px;
             font-weight: 700;
             margin-bottom: 14px;
             color: #0f172a;
@@ -460,80 +577,158 @@
             align-items: center;
             gap: 10px;
         }
-        .public-chart-box h3 i {
+        .chart-box h3 i {
             color: #2d7a3a;
         }
-        .public-chart-box canvas {
-            max-height: 210px;
+        .chart-box canvas {
+            max-height: 220px;
             max-width: 100%;
         }
 
-        .region-report-table {
-            background: #fff;
-            border-radius: 24px;
-            padding: 20px 24px;
-            border: 1px solid rgba(226, 232, 240, 0.6);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-            margin-top: 24px;
-            overflow-x: auto;
+        /* ===== AI ANALYSIS ===== */
+        .ai-analysis {
+            background: linear-gradient(145deg, #0f172a, #1a2a3a);
+            border-radius: 32px;
+            padding: 40px 44px;
+            margin: 20px 32px 30px;
+            max-width: 1300px;
+            margin-left: auto;
+            margin-right: auto;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        .ai-analysis::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(45, 122, 58, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .ai-analysis::after {
+            content: '';
+            position: absolute;
+            bottom: -40%;
+            left: -10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(14, 165, 233, 0.06) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .ai-analysis .ai-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+        }
+        .ai-analysis .ai-header .ai-icon {
+            font-size: 40px;
+            background: linear-gradient(135deg, #4ade80, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .ai-analysis .ai-header h2 {
+            color: #fff;
+            font-size: 26px;
+            font-weight: 800;
+        }
+        .ai-analysis .ai-header h2 span {
+            background: linear-gradient(135deg, #4ade80, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .ai-analysis .ai-header .ai-badge {
+            background: rgba(74, 222, 128, 0.15);
+            color: #4ade80;
+            padding: 4px 16px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(74, 222, 128, 0.2);
+        }
+        .ai-analysis .ai-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            position: relative;
+            z-index: 1;
+        }
+        .ai-analysis .ai-card {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 20px;
+            padding: 24px 28px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
             transition: 0.3s ease;
         }
-        .region-report-table:hover {
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+        .ai-analysis .ai-card:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
         }
-        .region-report-table h3 {
+        .ai-analysis .ai-card h4 {
+            color: #e2e8f0;
             font-size: 17px;
             font-weight: 700;
-            margin-bottom: 14px;
-            color: #0f172a;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        .region-report-table h3 i {
-            color: #0ea5e9;
+        .ai-analysis .ai-card h4 i {
+            color: #4ade80;
+            font-size: 20px;
         }
-        .region-report-table table {
-            width: 100%;
-            border-collapse: collapse;
+        .ai-analysis .ai-card p {
+            color: #cbd5e1;
+            font-size: 15px;
+            line-height: 1.9;
+        }
+        .ai-analysis .ai-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 8px 0 0;
+        }
+        .ai-analysis .ai-card ul li {
+            color: #cbd5e1;
+            font-size: 14px;
+            line-height: 2;
+            padding-right: 24px;
+            position: relative;
+        }
+        .ai-analysis .ai-card ul li::before {
+            content: '🌿';
+            position: absolute;
+            right: 0;
+            top: 0;
             font-size: 14px;
         }
-        .region-report-table th {
-            text-align: right;
-            padding: 12px 14px;
-            border-bottom: 2px solid #e9edf2;
-            color: #475569;
-            font-weight: 700;
-            font-size: 13px;
-            background: #f8fafc;
-        }
-        .region-report-table td {
-            padding: 12px 14px;
-            border-bottom: 1px solid #f1f5f9;
-        }
-        .region-report-table tr:hover td {
-            background: #f8fafc;
-        }
-        .region-report-table .region-badge {
+        .ai-analysis .ai-card .stat-highlight {
             display: inline-block;
-            background: #e9edf2;
-            padding: 2px 14px;
-            border-radius: 30px;
-            font-size: 12px;
-            font-weight: 500;
+            background: rgba(74, 222, 128, 0.12);
+            color: #4ade80;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 14px;
         }
 
+        /* ===== FOOTER ===== */
         .public-footer {
             background: linear-gradient(135deg, #0f172a, #1e293b);
             color: #94a3b8;
-            padding: 32px 32px;
+            padding: 32px;
             text-align: center;
-            border-top: 1px solid #1e293b;
             margin-top: 20px;
-        }
-        .public-footer span {
-            color: #e2e8f0;
-            font-weight: 600;
         }
         .public-footer .footer-logo {
             font-size: 20px;
@@ -548,13 +743,13 @@
             color: #60a5fa;
         }
 
-        /* ===== LOGIN MODAL ===== */
+        /* ===== LOGIN ===== */
         .login-box {
-            background: #ffffff;
+            background: #fff;
             border-radius: 32px;
             padding: 44px 40px 40px;
-            width: 100%;
             max-width: 420px;
+            width: 100%;
             box-shadow: 0 40px 80px rgba(0, 0, 0, 0.4);
             text-align: center;
             position: relative;
@@ -587,14 +782,10 @@
         }
         .login-box .logo-icon {
             font-size: 52px;
-            background: linear-gradient(135deg, #2d7a3a, #0ea5e9);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
             width: 84px;
             height: 84px;
             line-height: 84px;
             border-radius: 50%;
-            background-color: #e6f7ec;
             margin: 0 auto 12px;
             display: flex;
             align-items: center;
@@ -602,7 +793,7 @@
             background: linear-gradient(135deg, #dcfce7, #dbeafe);
         }
         .login-box .logo-icon i {
-            -webkit-text-fill-color: #2d7a3a;
+            color: #2d7a3a;
             font-size: 40px;
         }
         .login-box h2 {
@@ -641,7 +832,7 @@
             outline: none;
             border-color: #2d7a3a;
             box-shadow: 0 0 0 4px rgba(45, 122, 58, 0.15);
-            background: #ffffff;
+            background: #fff;
         }
         .login-box .login-btn {
             width: 100%;
@@ -661,31 +852,6 @@
             transform: translateY(-3px);
             box-shadow: 0 8px 32px rgba(45, 122, 58, 0.4);
         }
-        .login-box .quick-login-btn {
-            width: 100%;
-            padding: 12px;
-            margin-top: 8px;
-            background: #f1f5f9;
-            color: #1e293b;
-            border: 2px solid #e2e8f0;
-            border-radius: 14px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .login-box .quick-login-btn:hover {
-            background: #e2e8f0;
-            transform: translateY(-2px);
-            border-color: #94a3b8;
-        }
-        .login-box .quick-login-btn i {
-            color: #0ea5e9;
-        }
         .login-error {
             color: #dc2626;
             font-size: 13px;
@@ -693,7 +859,7 @@
             display: none;
         }
 
-        /* ===== SIDEBAR & ADMIN ===== */
+        /* ===== SIDEBAR ===== */
         .sidebar {
             position: fixed;
             top: 0;
@@ -765,9 +931,6 @@
             border-radius: 30px;
             font-size: 12px;
         }
-        .sidebar .nav-item.active .badge {
-            background: rgba(255, 255, 255, 0.2);
-        }
         .sidebar .logout-btn {
             margin-top: 30px;
             border-top: 1px solid #1e293b;
@@ -784,7 +947,7 @@
             min-height: 100vh;
         }
 
-        /* Admin common styles */
+        /* ===== ADMIN ===== */
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -842,23 +1005,6 @@
             grid-template-columns: 1fr 1fr;
             gap: 24px;
             margin-bottom: 32px;
-        }
-        .chart-box {
-            background: #fff;
-            border-radius: 20px;
-            padding: 20px 20px 12px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-            border: 1px solid #edf2f7;
-        }
-        .chart-box h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: #334155;
-            margin-bottom: 12px;
-        }
-        .chart-box canvas {
-            max-height: 220px;
-            max-width: 100%;
         }
         .table-wrapper {
             background: #fff;
@@ -926,13 +1072,6 @@
             padding: 4px 14px;
             font-size: 13px;
         }
-        .btn-success {
-            background: #16a34a;
-            color: #fff;
-        }
-        .btn-success:hover {
-            background: #15803d;
-        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -958,31 +1097,23 @@
             font-size: 12px;
             font-weight: 600;
         }
-        .status-badge.running {
-            background: #dbeafe;
-            color: #1d4ed8;
-        }
-        .status-badge.complete {
+        .status-badge.done {
             background: #dcfce7;
             color: #15803d;
         }
-        .status-badge.stopped {
-            background: #fee2e2;
-            color: #b91c1c;
+        .status-badge.progress {
+            background: #fef3c7;
+            color: #b45309;
         }
-        .region-tag {
-            display: inline-block;
-            background: #e9edf2;
-            padding: 0 10px;
-            border-radius: 30px;
-            font-size: 12px;
-            margin: 2px 4px 2px 0;
+        .status-badge.update {
+            background: #dbeafe;
+            color: #1d4ed8;
         }
-        .action-btns {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
+        .status-badge.special {
+            background: #f3e8ff;
+            color: #7e22ce;
         }
+
         .modal-overlay {
             display: none;
             position: fixed;
@@ -1068,32 +1199,6 @@
             grid-template-columns: 1fr 1fr;
             gap: 16px;
         }
-        .form-group .region-checkboxes {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            padding-top: 4px;
-        }
-        .form-group .region-checkboxes label {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-weight: 400;
-            font-size: 13px;
-            background: #f1f5f9;
-            padding: 4px 14px 4px 10px;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: 0.15s;
-        }
-        .form-group .region-checkboxes label:hover {
-            background: #e2e8f0;
-        }
-        .form-group .region-checkboxes input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            accent-color: #2d7a3a;
-        }
         .form-actions {
             display: flex;
             gap: 12px;
@@ -1101,67 +1206,6 @@
             margin-top: 20px;
             padding-top: 16px;
             border-top: 1px solid #edf2f7;
-        }
-        .alert-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            background: #f8fafc;
-            border-radius: 14px;
-            border-right: 4px solid #f59e0b;
-            margin-bottom: 10px;
-        }
-        .alert-item .alert-info {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px 20px;
-            align-items: center;
-        }
-        .alert-item .alert-info .date-badge {
-            background: #e9edf2;
-            padding: 0 12px;
-            border-radius: 30px;
-            font-size: 12px;
-            color: #475569;
-        }
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #94a3b8;
-        }
-        .empty-state i {
-            font-size: 48px;
-            margin-bottom: 12px;
-            opacity: 0.4;
-        }
-        .report-section {
-            background: #fff;
-            border-radius: 20px;
-            padding: 20px 24px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-            border: 1px solid #edf2f7;
-            margin-bottom: 24px;
-        }
-        .report-section .report-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 16px;
-        }
-        .report-item {
-            background: #f8fafc;
-            padding: 12px 16px;
-            border-radius: 14px;
-            text-align: center;
-        }
-        .report-item .r-label {
-            font-size: 13px;
-            color: #64748b;
-        }
-        .report-item .r-value {
-            font-size: 20px;
-            font-weight: 700;
-            color: #0f172a;
         }
         .page-section {
             display: none;
@@ -1205,68 +1249,6 @@
         .sidebar-overlay.show {
             display: block;
         }
-        .project-report-container {
-            background: #fff;
-            border-radius: 20px;
-            padding: 24px 28px;
-            border: 1px solid #edf2f7;
-            margin-top: 16px;
-        }
-        .project-report-container .report-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 16px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #e9edf2;
-        }
-        .project-report-container .report-header h3 {
-            font-size: 20px;
-            font-weight: 700;
-        }
-        .project-report-container .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-        .project-report-container .info-item {
-            background: #f8fafc;
-            padding: 12px 16px;
-            border-radius: 14px;
-        }
-        .project-report-container .info-item .label {
-            font-size: 13px;
-            color: #64748b;
-        }
-        .project-report-container .info-item .value {
-            font-size: 18px;
-            font-weight: 600;
-            color: #0f172a;
-            margin-top: 2px;
-        }
-        .project-report-container .info-item .value .tag {
-            background: #e9edf2;
-            padding: 0 10px;
-            border-radius: 30px;
-            font-size: 13px;
-            font-weight: 400;
-            margin-left: 4px;
-        }
-        .project-report-container .alerts-section {
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid #edf2f7;
-        }
-        .project-report-container .alerts-section h4 {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        /* Toast message */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -1301,15 +1283,22 @@
         }
 
         @media (max-width: 992px) {
-            .public-charts,
+            .charts-row-public,
             .charts-row {
                 grid-template-columns: 1fr;
             }
             .form-row {
                 grid-template-columns: 1fr;
             }
-            .project-report-container .info-grid {
-                grid-template-columns: 1fr 1fr;
+            .ai-analysis .ai-grid {
+                grid-template-columns: 1fr;
+            }
+            .progress-section {
+                margin: 10px 16px 20px;
+                padding: 20px;
+            }
+            .progress-grid {
+                grid-template-columns: 1fr;
             }
         }
         @media (max-width: 768px) {
@@ -1328,67 +1317,64 @@
                 padding: 12px 16px;
             }
             .public-hero {
-                padding: 36px 16px 44px;
+                padding: 30px 16px 36px;
             }
             .public-hero h1 {
                 font-size: 28px;
             }
             .public-stats,
-            .public-section,
-            .filter-tabs {
-                padding: 16px;
+            .project-grid,
+            .charts-row-public,
+            .map-container {
+                padding: 12px 16px;
             }
-            .filter-tabs {
-                padding: 12px 16px 0;
-            }
-            .project-grid {
-                grid-template-columns: 1fr;
+            .section-title {
+                margin: 20px 16px 12px;
+                font-size: 22px;
             }
             .mobile-menu-btn {
                 display: flex !important;
             }
-            .page-header h1 {
-                font-size: 20px;
-            }
             .stats-grid {
                 grid-template-columns: 1fr 1fr;
             }
-            .project-report-container .info-grid {
+            #map {
+                height: 320px;
+            }
+            .ai-analysis {
+                padding: 24px 18px;
+                margin: 16px;
+            }
+            .ai-analysis .ai-grid {
                 grid-template-columns: 1fr;
             }
-            .public-stats {
-                margin-top: -10px;
+            .public-hero .hero-badges span {
+                padding: 6px 16px;
+                font-size: 12px;
             }
-            .toast {
-                left: 16px;
-                right: 16px;
-                bottom: 16px;
-                font-size: 13px;
-                padding: 12px 18px;
+            .progress-section {
+                margin: 10px 12px 20px;
+                padding: 16px;
+            }
+            .progress-grid {
+                grid-template-columns: 1fr;
             }
         }
         @media (max-width: 480px) {
             .stats-grid {
                 grid-template-columns: 1fr;
             }
-            .public-nav .nav-links a {
-                display: none;
-            }
-            .login-box {
-                padding: 28px 16px;
-            }
-            .project-report-container {
-                padding: 16px;
-            }
             .public-hero h1 {
                 font-size: 24px;
             }
-            .public-hero .hero-badges span {
-                font-size: 12px;
-                padding: 4px 14px;
+            .project-grid {
+                grid-template-columns: 1fr;
             }
-            .public-stat-card .num {
-                font-size: 28px;
+            .charts-row-public {
+                grid-template-columns: 1fr;
+            }
+            .progress-grid {
+                grid-template-columns: 1fr;
             }
         }
         @media print {
@@ -1406,20 +1392,37 @@
                 margin-right: 0 !important;
                 padding: 10px !important;
             }
-            .project-report-container {
+            .project-card {
                 border: 1px solid #ddd !important;
                 box-shadow: none !important;
                 page-break-inside: avoid;
             }
-            .public-hero {
-                background: #fff !important;
-            }
-            .project-card {
-                border: 1px solid #ddd !important;
-                box-shadow: none !important;
-            }
             .modal-overlay {
                 display: none !important;
+            }
+            #map {
+                height: 300px !important;
+            }
+            .ai-analysis {
+                background: #f8fafc !important;
+                border: 1px solid #ddd !important;
+                color: #1e293b !important;
+            }
+            .ai-analysis .ai-card p,
+            .ai-analysis .ai-card ul li,
+            .ai-analysis .ai-card h4 {
+                color: #1e293b !important;
+            }
+            .ai-analysis .ai-header h2 {
+                color: #0f172a !important;
+            }
+            .ai-analysis .ai-header .ai-badge {
+                color: #2d7a3a !important;
+                border-color: #2d7a3a !important;
+            }
+            .progress-section {
+                border: 1px solid #ddd !important;
+                box-shadow: none !important;
             }
         }
     </style>
@@ -1430,11 +1433,10 @@
     <!-- ==================== PUBLIC PAGE ============================ -->
     <!-- ============================================================ -->
     <div id="publicPage">
-        <!-- Nav -->
         <nav class="public-nav">
             <div class="brand">
                 <i class="fas fa-map-marked-alt"></i>
-                <span>سامانه مدیریت پروژه‌های <span class="gis">GIS</span></span>
+                <span>سامانه جامع <span class="gis">GIS</span> فضای سبز شیراز</span>
             </div>
             <div class="nav-links">
                 <button class="login-btn" onclick="showLoginPage()">
@@ -1443,86 +1445,138 @@
             </div>
         </nav>
 
-        <!-- Hero -->
         <section class="public-hero">
-            <h1>📍 مدیریت هوشمند پروژه‌های <span class="highlight">GIS</span></h1>
-            <p>سامانه جامع مدیریت پروژه‌های فضای سبز با قابلیت‌های مکانی، تحلیل آماری و گزارش‌گیری پیشرفته</p>
+            <h1>📍 مدیریت هوشمند فضای سبز <span class="highlight">شیراز</span></h1>
+            <p>ممیزی، بانک اطلاعات مکانی، پایش و گزارش‌گیری پیشرفته برای ۱۱ منطقه شهری و ارتفاعات پیرامونی</p>
             <div class="hero-badges">
-                <span><i class="fas fa-layer-group"></i> ۱۳ منطقه اجرایی</span>
-                <span><i class="fas fa-chart-line"></i> تحلیل مکانی</span>
-                <span><i class="fas fa-map"></i> موقعیت‌یابی پروژه‌ها</span>
-                <span><i class="fas fa-bell"></i> سیستم هشدار هوشمند</span>
+                <span onclick="filterProjects('شهری')"><i class="fas fa-city"></i> ۱۱ منطقه شهری</span>
+                <span onclick="filterProjects('ارتفاعات')"><i class="fas fa-mountain"></i> ۸ منطقه ارتفاعات</span>
+                <span onclick="filterProjects('ویژه')"><i class="fas fa-star"></i> ۲ پروژه ویژه</span>
+                <span onclick="document.getElementById('map').scrollIntoView({behavior:'smooth'})"><i class="fas fa-map"></i> تحلیل مکانی</span>
+                <span onclick="document.getElementById('aiSection').scrollIntoView({behavior:'smooth'})"><i class="fas fa-robot"></i> تحلیل هوشمند</span>
             </div>
         </section>
 
-        <!-- Stats (non-financial) -->
+        <!-- Stats -->
         <div class="public-stats" id="publicStats">
-            <div class="public-stat-card">
+            <div class="public-stat-card" onclick="toggleStatInfo(this)">
                 <div class="icon"><i class="fas fa-tasks"></i></div>
                 <div class="num" id="pubTotal">۰</div>
                 <div class="lbl">کل پروژه‌ها</div>
+                <div class="sub-info">شامل ۱۰ پروژه فعال در حوزه فضای سبز</div>
+                <div class="click-hint">🖱️ کلیک برای جزئیات</div>
             </div>
-            <div class="public-stat-card">
-                <div class="icon"><i class="fas fa-play-circle"></i></div>
-                <div class="num" id="pubRunning">۰</div>
-                <div class="lbl">در حال اجرا</div>
-            </div>
-            <div class="public-stat-card">
+            <div class="public-stat-card" onclick="toggleStatInfo(this)">
                 <div class="icon"><i class="fas fa-check-circle"></i></div>
-                <div class="num" id="pubComplete">۰</div>
-                <div class="lbl">تکمیل شده</div>
+                <div class="num" id="pubDone">۰</div>
+                <div class="lbl">تکمیل‌شده</div>
+                <div class="sub-info">✅ پروژه‌های به اتمام رسیده</div>
+                <div class="click-hint">🖱️ کلیک برای جزئیات</div>
             </div>
-            <div class="public-stat-card">
-                <div class="icon"><i class="fas fa-stop-circle"></i></div>
-                <div class="num" id="pubStopped">۰</div>
-                <div class="lbl">متوقف شده</div>
+            <div class="public-stat-card" onclick="toggleStatInfo(this)">
+                <div class="icon"><i class="fas fa-spinner"></i></div>
+                <div class="num" id="pubProgress">۰</div>
+                <div class="lbl">در حال انجام</div>
+                <div class="sub-info">🔄 پروژه‌های فعال در دست اجرا</div>
+                <div class="click-hint">🖱️ کلیک برای جزئیات</div>
             </div>
-            <div class="public-stat-card">
-                <div class="icon"><i class="fas fa-map-marked-alt"></i></div>
-                <div class="num" id="pubRegions">۰</div>
-                <div class="lbl">مناطق فعال</div>
+            <div class="public-stat-card" onclick="toggleStatInfo(this)">
+                <div class="icon"><i class="fas fa-sync-alt"></i></div>
+                <div class="num" id="pubUpdate">۰</div>
+                <div class="lbl">بروزرسانی</div>
+                <div class="sub-info">🔵 پروژه‌های در مرحله بروزرسانی</div>
+                <div class="click-hint">🖱️ کلیک برای جزئیات</div>
+            </div>
+            <div class="public-stat-card" onclick="toggleStatInfo(this)">
+                <div class="icon"><i class="fas fa-star"></i></div>
+                <div class="num" id="pubSpecial">۰</div>
+                <div class="lbl">پروژه‌های ویژه</div>
+                <div class="sub-info">⭐ پروژه‌های شاخص و ویژه</div>
+                <div class="click-hint">🖱️ کلیک برای جزئیات</div>
             </div>
         </div>
 
-        <!-- Filter Tabs -->
-        <div class="filter-tabs" id="filterTabs">
-            <button class="tab active" data-filter="all" onclick="setFilter('all')">🗺️ همه</button>
-            <button class="tab" data-filter="در حال اجرا" onclick="setFilter('در حال اجرا')">🟢 در حال اجرا</button>
-            <button class="tab" data-filter="تکمیل‌شده" onclick="setFilter('تکمیل‌شده')">✅ تکمیل‌شده</button>
-            <button class="tab" data-filter="متوقف‌شده" onclick="setFilter('متوقف‌شده')">⛔ متوقف‌شده</button>
+        <!-- Projects -->
+        <h2 class="section-title" id="urbanTitle"><i class="fas fa-city"></i> پروژه‌های شهری <span class="badge-count" id="urbanCount">۰</span></h2>
+        <div class="project-grid" id="urbanProjects"></div>
+
+        <h2 class="section-title" id="mountainTitle"><i class="fas fa-mountain"></i> پروژه‌های ارتفاعات <span class="badge-count" id="mountainCount">۰</span></h2>
+        <div class="project-grid" id="mountainProjects"></div>
+
+        <h2 class="section-title" id="specialTitle"><i class="fas fa-star"></i> پروژه‌های ویژه <span class="badge-count" id="specialCount">۰</span></h2>
+        <div class="project-grid" id="specialProjects"></div>
+
+        <!-- ===== NEW: PROGRESS SECTION ===== -->
+        <div class="progress-section" id="progressSection">
+            <h2 class="section-title"><i class="fas fa-chart-simple" style="background:linear-gradient(135deg,#f59e0b,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"></i> پروژه‌های در حال انجام <span style="font-size:14px;color:#94a3b8;font-weight:400;margin-right:12px;">(درصد پیشرفت)</span></h2>
+            <div class="progress-grid" id="progressGrid"></div>
+            <div style="max-width:500px;margin:0 auto;padding-top:8px;">
+                <div class="chart-box" style="border-radius:20px;padding:16px 16px 8px;">
+                    <h3 style="font-size:16px;font-weight:700;margin-bottom:8px;color:#0f172a;"><i class="fas fa-arrow-trend-up" style="color:#f59e0b;"></i> مقایسه پیشرفت پروژه‌ها</h3>
+                    <canvas id="progressChart"></canvas>
+                </div>
+            </div>
         </div>
 
-        <!-- Projects Grid -->
-        <section class="public-section" id="publicProjectsSection">
-            <h2><i class="fas fa-folder-open"></i> لیست پروژه‌های GIS</h2>
-            <div class="project-grid" id="publicProjectGrid">
-                <!-- injected by JS -->
-            </div>
-        </section>
+        <!-- Map -->
+        <h2 class="section-title"><i class="fas fa-map"></i> نقشه مناطق ممیزی‌شده</h2>
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
 
-        <!-- Charts & Region Report (non-financial) -->
-        <section class="public-section" id="publicChartsSection">
-            <h2><i class="fas fa-chart-pie"></i> تحلیل مکانی و آماری</h2>
-            <div class="public-charts">
-                <div class="public-chart-box">
-                    <h3><i class="fas fa-circle"></i> وضعیت پروژه‌ها</h3>
-                    <canvas id="publicStatusChart"></canvas>
+        <!-- Charts -->
+        <h2 class="section-title"><i class="fas fa-chart-pie"></i> تحلیل آماری پروژه‌ها</h2>
+        <div class="charts-row-public">
+            <div class="chart-box">
+                <h3><i class="fas fa-chart-bar"></i> وضعیت پروژه‌ها</h3>
+                <canvas id="publicStatusChart"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3><i class="fas fa-layer-group"></i> تفکیک نوع پروژه</h3>
+                <canvas id="publicTypeChart"></canvas>
+            </div>
+        </div>
+
+        <!-- AI Analysis -->
+        <div id="aiSection" class="ai-analysis">
+            <div class="ai-header">
+                <div class="ai-icon"><i class="fas fa-robot"></i></div>
+                <h2>تحلیل هوشمند <span>GIS</span></h2>
+                <span class="ai-badge"><i class="fas fa-brain"></i> هوش مصنوعی</span>
+            </div>
+            <div class="ai-grid">
+                <div class="ai-card">
+                    <h4><i class="fas fa-chart-line"></i> تحلیل کاربری پروژه‌ها</h4>
+                    <p>بر اساس داده‌های موجود، <span class="stat-highlight" id="aiTotal">۰</span> پروژه در سامانه ثبت شده است که از این تعداد:</p>
+                    <ul>
+                        <li id="aiUrban">شهری: <strong>۰</strong> پروژه (شامل ۱۱ منطقه)</li>
+                        <li id="aiMountain">ارتفاعات: <strong>۰</strong> پروژه (شامل ۸ منطقه)</li>
+                        <li id="aiSpecial">ویژه: <strong>۰</strong> پروژه (تابلوهای شهدا و المان‌های هنری)</li>
+                    </ul>
+                    <p style="margin-top:12px;">وضعیت اجرایی: <span class="stat-highlight" id="aiStatus">۰</span> پروژه تکمیل‌شده، <span class="stat-highlight" id="aiProgress">۰</span> در حال انجام، <span class="stat-highlight" id="aiUpdate">۰</span> بروزرسانی</p>
                 </div>
-                <div class="public-chart-box">
-                    <h3><i class="fas fa-map"></i> پراکنش مناطق</h3>
-                    <canvas id="publicRegionChart"></canvas>
+                <div class="ai-card">
+                    <h4><i class="fas fa-tree"></i> اهمیت ممیزی و GIS در فضای سبز</h4>
+                    <p><strong>ممیزی فضای سبز</strong> با استفاده از <strong>GIS</strong> نقش حیاتی در حفظ و نگهداری پایدار فضای سبز شهری ایفا می‌کند:</p>
+                    <ul>
+                        <li>📍 <strong>شناسایی دقیق</strong> موقعیت درختان، چمن‌ها و بوستان‌ها</li>
+                        <li>📊 <strong>مدیریت بهینه</strong> منابع و تخصیص بودجه بر اساس داده‌های مکانی</li>
+                        <li>🌱 <strong>پایش سلامت</strong> فضای سبز و تشخیص به‌موقع مشکلات</li>
+                        <li>📈 <strong>برنامه‌ریزی علمی</strong> برای توسعه و نگهداری فضای سبز</li>
+                        <li>🔗 <strong>اتصال به سامانه‌های</strong> بوستان و SDI برای تصمیم‌گیری یکپارچه</li>
+                    </ul>
+                    <p style="margin-top:12px;color:#e2e8f0;font-size:14px;">
+                        <i class="fas fa-quote-right" style="color:#4ade80;"></i>
+                        "GIS با ارائه تصویری جامع از وضعیت فضای سبز، امکان مدیریت هوشمند و پایدار را فراهم می‌کند."
+                    </p>
                 </div>
             </div>
-            <div class="region-report-table">
-                <h3><i class="fas fa-table"></i> تعداد پروژه بر اساس منطقه</h3>
-                <div id="publicRegionTable"></div>
-            </div>
-        </section>
+        </div>
 
         <footer class="public-footer">
             <div class="footer-logo">
                 <i class="fas fa-map-marked-alt"></i>
-                سامانه مدیریت پروژه‌های <span class="gis">GIS</span>
+                سامانه جامع <span class="gis">GIS</span> فضای سبز شیراز
             </div>
             <div style="font-size:14px;">تمامي حقوق محفوظ است © ۱۴۰۴</div>
         </footer>
@@ -1535,17 +1589,14 @@
         <div class="login-box">
             <button class="close-login" onclick="hideLoginPage()">&times;</button>
             <div class="logo-icon"><i class="fas fa-map-marked-alt"></i></div>
-            <h2>ورود به پنل <span class="gis">GIS</span></h2>
-            <p class="sub">مدیریت پروژه‌های فضای سبز</p>
+            <h2>ورود به پنل <span class="gis">مدیریت</span></h2>
+            <p class="sub">مدیریت پروژه‌های فضای سبز شیراز</p>
             <form id="loginForm" onsubmit="return handleLogin(event)">
-                <label>Username</label>
-                <input type="text" id="loginUser" value="09176206606" dir="ltr" readonly onfocus="this.removeAttribute('readonly')">
-                <label>Password</label>
-                <input type="password" id="loginPass" value="82032" dir="ltr" readonly onfocus="this.removeAttribute('readonly')">
-                <button type="submit" class="login-btn">ورود با اطلاعات پیش‌فرض</button>
-                <button type="button" class="quick-login-btn" onclick="quickLogin()">
-                    <i class="fas fa-bolt"></i> ورود خودکار (یک کلیک)
-                </button>
+                <label>نام کاربری</label>
+                <input type="text" id="loginUser" dir="ltr">
+                <label>رمز عبور</label>
+                <input type="password" id="loginPass" dir="ltr">
+                <button type="submit" class="login-btn">ورود به پنل مدیریت</button>
                 <div id="loginError" class="login-error">نام کاربری یا رمز عبور نادرست است</div>
             </form>
         </div>
@@ -1555,9 +1606,7 @@
     <!-- ==================== ADMIN APP ============================== -->
     <!-- ============================================================ -->
     <div id="appContainer">
-        <!-- Sidebar Overlay -->
         <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar(false)"></div>
-
         <aside class="sidebar" id="sidebar">
             <div class="brand">
                 <i class="fas fa-map-marked-alt"></i>
@@ -1568,18 +1617,22 @@
                     <i class="fas fa-chart-pie"></i> داشبورد
                 </div>
                 <div class="nav-item" data-page="projects" onclick="navigateTo('projects')">
-                    <i class="fas fa-folder-open"></i> پروژه‌ها
+                    <i class="fas fa-folder-open"></i> مدیریت پروژه‌ها
                     <span class="badge" id="projectCountBadge">0</span>
                 </div>
-                <div class="nav-item" data-page="alerts" onclick="navigateTo('alerts')">
-                    <i class="fas fa-bell"></i> هشدارها
-                    <span class="badge" id="alertCountBadge">0</span>
+                <div class="nav-item" data-page="financial" onclick="navigateTo('financial')">
+                    <i class="fas fa-money-bill-wave"></i> جدول مالی
+                    <span class="badge" id="financialBadge">0</span>
+                </div>
+                <div class="nav-item" data-page="progressAdmin" onclick="navigateTo('progressAdmin')">
+                    <i class="fas fa-chart-simple"></i> مدیریت پیشرفت
+                    <span class="badge" id="progressBadge">0</span>
+                </div>
+                <div class="nav-item" data-page="mapAdmin" onclick="navigateTo('mapAdmin')">
+                    <i class="fas fa-map"></i> نقشه و KML
                 </div>
                 <div class="nav-item" data-page="reports" onclick="navigateTo('reports')">
-                    <i class="fas fa-file-invoice"></i> گزارش‌ها
-                </div>
-                <div class="nav-item" data-page="projectReport" onclick="navigateTo('projectReport')">
-                    <i class="fas fa-file-alt"></i> گزارش پروژه
+                    <i class="fas fa-file-invoice"></i> گزارش‌ها و آمار
                 </div>
                 <div class="nav-item" data-page="public" onclick="switchToPublic()">
                     <i class="fas fa-globe"></i> صفحه عمومی
@@ -1587,8 +1640,15 @@
                 <div class="nav-item" style="margin-top:10px;border-top:1px solid #1e293b;padding-top:14px;cursor:default;color:#64748b;font-size:13px;">
                     <i class="fas fa-database"></i> <span id="storageStatus">✅ ذخیره‌سازی محلی فعال</span>
                 </div>
+                <div class="nav-item" onclick="exportDataToFile()" style="color:#60a5fa;cursor:pointer;">
+                    <i class="fas fa-file-export"></i> ذخیره در فایل JSON
+                </div>
+                <div class="nav-item" onclick="document.getElementById('fileInput').click()" style="color:#f59e0b;cursor:pointer;">
+                    <i class="fas fa-file-import"></i> بارگذاری از فایل JSON
+                </div>
+                <input type="file" id="fileInput" accept=".json" style="display:none" onchange="importDataFromFile(event)">
                 <div class="nav-item" onclick="resetToSample()" style="color:#f59e0b;cursor:pointer;">
-                    <i class="fas fa-undo-alt"></i> بازنشانی به داده‌های نمونه
+                    <i class="fas fa-undo-alt"></i> بازنشانی به داده‌های اولیه
                 </div>
                 <div class="nav-item logout-btn" onclick="handleLogout()">
                     <i class="fas fa-sign-out-alt"></i> خروج
@@ -1600,7 +1660,7 @@
             <header class="page-header">
                 <div style="display:flex;align-items:center;gap:12px;">
                     <button class="mobile-menu-btn" onclick="toggleSidebar(true)"><i class="fas fa-bars"></i></button>
-                    <h1 id="pageTitle">داشبورد <small>خلاصه وضعیت</small></h1>
+                    <h1 id="pageTitle">داشبورد مدیریت</h1>
                 </div>
                 <div class="user-info">
                     <i class="fas fa-user-circle"></i>
@@ -1611,37 +1671,18 @@
                 </div>
             </header>
 
-            <!-- Dashboard -->
             <section id="page-dashboard" class="page-section active">
                 <div class="stats-grid" id="statsGrid">
-                    <div class="stat-card"><span class="icon"><i class="fas fa-tasks"></i></span>
-                        <div class="label">کل پروژه‌ها</div>
-                        <div class="value" id="statTotal">0</div>
-                    </div>
-                    <div class="stat-card"><span class="icon"><i class="fas fa-money-bill"></i></span>
-                        <div class="label">مجموع مبلغ (ریال)</div>
-                        <div class="value" id="statAmount">0</div>
-                    </div>
-                    <div class="stat-card"><span class="icon"><i class="fas fa-vector-square"></i></span>
-                        <div class="label">مجموع مساحت (هکتار)</div>
-                        <div class="value" id="statArea">0</div>
-                    </div>
-                    <div class="stat-card"><span class="icon"><i class="fas fa-play-circle"></i></span>
-                        <div class="label">در حال اجرا</div>
-                        <div class="value" id="statRunning">0</div>
-                    </div>
-                    <div class="stat-card"><span class="icon"><i class="fas fa-check-circle"></i></span>
-                        <div class="label">تکمیل شده</div>
-                        <div class="value" id="statComplete">0</div>
-                    </div>
-                    <div class="stat-card"><span class="icon"><i class="fas fa-stop-circle"></i></span>
-                        <div class="label">متوقف شده</div>
-                        <div class="value" id="statStopped">0</div>
-                    </div>
+                    <div class="stat-card"><span class="icon"><i class="fas fa-tasks"></i></span><div class="label">کل پروژه‌ها</div><div class="value" id="statTotal">0</div></div>
+                    <div class="stat-card"><span class="icon"><i class="fas fa-check-circle"></i></span><div class="label">تکمیل‌شده</div><div class="value" id="statDone">0</div></div>
+                    <div class="stat-card"><span class="icon"><i class="fas fa-spinner"></i></span><div class="label">در حال انجام</div><div class="value" id="statProgress">0</div></div>
+                    <div class="stat-card"><span class="icon"><i class="fas fa-sync-alt"></i></span><div class="label">بروزرسانی</div><div class="value" id="statUpdate">0</div></div>
+                    <div class="stat-card"><span class="icon"><i class="fas fa-star"></i></span><div class="label">پروژه‌های ویژه</div><div class="value" id="statSpecial">0</div></div>
+                    <div class="stat-card"><span class="icon"><i class="fas fa-money-bill"></i></span><div class="label">مجموع مبلغ (ریال)</div><div class="value" id="statAmount">0</div></div>
                 </div>
                 <div class="charts-row">
                     <div class="chart-box"><h3><i class="fas fa-chart-bar" style="margin-left:8px;color:#2d7a3a;"></i> توزیع وضعیت</h3><canvas id="statusChart"></canvas></div>
-                    <div class="chart-box"><h3><i class="fas fa-map-marked-alt" style="margin-left:8px;color:#2d7a3a;"></i> پراکندگی مناطق</h3><canvas id="regionChart"></canvas></div>
+                    <div class="chart-box"><h3><i class="fas fa-layer-group" style="margin-left:8px;color:#2d7a3a;"></i> تفکیک نوع</h3><canvas id="typeChart"></canvas></div>
                 </div>
                 <div class="table-wrapper">
                     <div class="toolbar"><h3><i class="fas fa-list" style="margin-left:8px;"></i> آخرین پروژه‌ها</h3><span class="text-muted">۵ مورد اخیر</span></div>
@@ -1649,142 +1690,208 @@
                 </div>
             </section>
 
-            <!-- Projects -->
             <section id="page-projects" class="page-section">
-                <div class="flex-between mb-8">
-                    <h2 style="font-size:22px;">مدیریت پروژه‌ها</h2>
-                    <button class="btn btn-primary" onclick="openProjectModal()"><i class="fas fa-plus"></i> پروژه جدید</button>
-                </div>
+                <div class="flex-between mb-8"><h2 style="font-size:22px;">مدیریت پروژه‌ها</h2><button class="btn btn-primary" onclick="openProjectModal()"><i class="fas fa-plus"></i> پروژه جدید</button></div>
+                <div class="table-wrapper"><div class="toolbar"><h3>لیست پروژه‌ها</h3><span class="text-muted" id="projectCountLabel">۰ پروژه</span></div><div id="projectsTable"></div></div>
+            </section>
+
+            <section id="page-financial" class="page-section">
+                <div class="flex-between mb-8"><h2 style="font-size:22px;">جدول مالی</h2><button class="btn btn-primary" onclick="openFinancialModal()"><i class="fas fa-plus"></i> افزودن رکورد</button></div>
+                <div class="table-wrapper"><div class="toolbar"><h3><i class="fas fa-money-bill-wave" style="margin-left:8px;color:#2d7a3a;"></i> اطلاعات مالی</h3><span class="text-muted" id="financialCountLabel">۰ رکورد</span></div><div id="financialTable"></div></div>
+            </section>
+
+            <!-- Progress Admin -->
+            <section id="page-progressAdmin" class="page-section">
+                <div class="flex-between mb-8"><h2 style="font-size:22px;">مدیریت پیشرفت پروژه‌ها</h2></div>
                 <div class="table-wrapper">
-                    <div class="toolbar"><h3>لیست پروژه‌ها</h3><span class="text-muted" id="projectCountLabel">۰ پروژه</span></div>
-                    <div id="projectsTable"></div>
+                    <div class="toolbar"><h3><i class="fas fa-chart-simple" style="margin-left:8px;color:#f59e0b;"></i> تنظیم درصد پیشرفت</h3><span class="text-muted" id="progressCountLabel">۳ پروژه</span></div>
+                    <div id="progressAdminTable"></div>
                 </div>
             </section>
 
-            <!-- Alerts -->
-            <section id="page-alerts" class="page-section">
-                <div class="flex-between mb-8">
-                    <h2 style="font-size:22px;">مدیریت هشدارها</h2>
-                    <button class="btn btn-primary" onclick="openAlertModal()"><i class="fas fa-plus"></i> هشدار جدید</button>
+            <section id="page-mapAdmin" class="page-section">
+                <h2 style="font-size:22px;margin-bottom:16px;">نقشه و مدیریت KML/KMZ</h2>
+                <div class="map-container"><div id="mapAdmin" style="height:480px;border-radius:24px;border:1px solid #edf2f7;"></div></div>
+                <div style="margin-top:16px;display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
+                    <span><span style="display:inline-block;width:20px;height:20px;background:#22c55e;border-radius:4px;vertical-align:middle;"></span> تکمیل‌شده</span>
+                    <span><span style="display:inline-block;width:20px;height:20px;background:#ef4444;border-radius:4px;vertical-align:middle;animation:blink 1.2s infinite;"></span> در حال انجام</span>
+                    <span><span style="display:inline-block;width:20px;height:20px;background:#3b82f6;border-radius:4px;vertical-align:middle;"></span> بروزرسانی</span>
+                    <span><span style="display:inline-block;width:20px;height:20px;background:#8b5cf6;border-radius:4px;vertical-align:middle;"></span> ویژه</span>
+                    <span style="margin-right:auto;">
+                        <button class="btn btn-primary" onclick="document.getElementById('kmlUpload').click()"><i class="fas fa-upload"></i> آپلود KML/KMZ</button>
+                        <input type="file" id="kmlUpload" accept=".kml,.kmz" style="display:none" onchange="handleKMLUpload(event)">
+                        <span id="kmlStatus" style="font-size:13px;color:#64748b;margin-right:12px;">هیچ فایلی آپلود نشده</span>
+                    </span>
                 </div>
-                <div class="table-wrapper">
-                    <div class="toolbar"><h3><i class="fas fa-bell" style="margin-left:8px;"></i> هشدارهای تعریف‌شده</h3><span class="text-muted" id="alertCountLabel">۰ هشدار</span></div>
-                    <div id="alertsList"></div>
-                </div>
+                <div id="kmlLayerList" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;"></div>
             </section>
 
-            <!-- Reports (financial summary) -->
             <section id="page-reports" class="page-section">
-                <h2 style="font-size:22px;margin-bottom:16px;">گزارش‌های مالی و عملکرد</h2>
-                <div class="report-section">
+                <h2 style="font-size:22px;margin-bottom:16px;">گزارش‌ها و آمار مالی</h2>
+                <div style="background:#fff;border-radius:20px;padding:20px 24px;border:1px solid #edf2f7;margin-bottom:24px;">
                     <h3><i class="fas fa-file-invoice-dollar" style="color:#2d7a3a;"></i> خلاصه مالی</h3>
-                    <div class="report-grid" id="financialSummary"></div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;" id="financialSummary"></div>
                 </div>
-                <div class="report-section">
-                    <h3><i class="fas fa-chart-simple" style="color:#2d7a3a;"></i> گزارش تفکیکی مناطق (مالی)</h3>
+                <div style="background:#fff;border-radius:20px;padding:20px 24px;border:1px solid #edf2f7;margin-bottom:24px;">
+                    <h3><i class="fas fa-chart-simple" style="color:#2d7a3a;"></i> گزارش تفکیکی مناطق</h3>
                     <div id="regionReportTable"></div>
                 </div>
-                <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;" class="no-print">
+                <div style="display:flex;gap:12px;flex-wrap:wrap;" class="no-print">
                     <button class="btn btn-primary" onclick="window.print()"><i class="fas fa-print"></i> چاپ گزارش</button>
                     <button class="btn btn-outline" onclick="exportReport()"><i class="fas fa-file-export"></i> خروجی JSON</button>
                 </div>
             </section>
-
-            <!-- ===== PROJECT REPORT (per project) ===== -->
-            <section id="page-projectReport" class="page-section">
-                <h2 style="font-size:22px;margin-bottom:16px;">گزارش پروژه (جزئیات کامل)</h2>
-                <div class="flex-between mb-8">
-                    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                        <label style="font-weight:600;font-size:15px;">انتخاب پروژه:</label>
-                        <select id="projectReportSelect" onchange="renderProjectReport()" style="padding:8px 16px;border-radius:12px;border:2px solid #e2e8f0;font-size:14px;background:#fff;min-width:200px;">
-                            <option value="">— انتخاب کنید —</option>
-                        </select>
-                    </div>
-                    <button class="btn btn-primary no-print" onclick="printProjectReport()"><i class="fas fa-print"></i> چاپ گزارش این پروژه</button>
-                </div>
-                <div id="projectReportContainer" class="project-report-container">
-                    <div class="empty-state"><i class="fas fa-file-alt"></i><p>لطفاً یک پروژه را انتخاب کنید تا گزارش کامل آن نمایش داده شود.</p></div>
-                </div>
-            </section>
-
         </main>
     </div>
 
     <!-- ==================== MODALS ==================== -->
+    <!-- Project Modal -->
     <div class="modal-overlay" id="projectModal">
         <div class="modal-box">
             <div class="modal-header"><h2 id="projectModalTitle">ثبت پروژه جدید</h2><button class="close-btn" onclick="closeModal('projectModal')">&times;</button></div>
             <form id="projectForm" onsubmit="return saveProject(event)">
                 <input type="hidden" id="editProjectId" value="">
-                <div class="form-group"><label>نام پروژه <span class="required">*</span></label><input type="text" id="pName" required></div>
-                <div class="form-group"><label>پیمانکار / شرکت مجری <span class="required">*</span></label><input type="text" id="pContractor" required></div>
+                <div class="form-group"><label>نام پروژه *</label><input type="text" id="pName" required></div>
+                <div class="form-group"><label>توضیحات</label><input type="text" id="pDesc"></div>
                 <div class="form-row">
-                    <div class="form-group"><label>مبلغ کل (ریال) <span class="required">*</span></label><input type="number" id="pAmount" required></div>
-                    <div class="form-group"><label>مساحت (هکتار) <span class="required">*</span></label><input type="number" id="pArea" step="0.01" required></div>
+                    <div class="form-group"><label>نوع</label><select id="pType"><option value="شهری">شهری</option><option value="ارتفاعات">ارتفاعات</option><option value="ویژه">ویژه</option></select></div>
+                    <div class="form-group"><label>وضعیت</label><select id="pStatus"><option value="تکمیل‌شده">تکمیل‌شده</option><option value="در حال انجام">در حال انجام</option><option value="بروزرسانی">بروزرسانی</option></select></div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group"><label>تاریخ شروع (شمسی)</label><input type="text" id="pStartDate" placeholder="۱۴۰۴/۰۱/۰۱"></div>
-                    <div class="form-group"><label>تاریخ پایان (شمسی)</label><input type="text" id="pEndDate" placeholder="۱۴۰۴/۱۲/۲۹"></div>
+                    <div class="form-group"><label>مبلغ (ریال)</label><input type="number" id="pAmount" placeholder="۰"></div>
+                    <div class="form-group"><label>مناطق</label><input type="text" id="pRegions" placeholder="مثلاً منطقه ۴ و ۸"></div>
                 </div>
-                <div class="form-group"><label>وضعیت <span class="required">*</span></label><select id="pStatus" required><option value="در حال اجرا">در حال اجرا</option><option value="تکمیل‌شده">تکمیل‌شده</option><option value="متوقف‌شده">متوقف‌شده</option></select></div>
-                <div class="form-group"><label>مناطق اجرایی <span class="required">*</span> (چند انتخابی)</label><div class="region-checkboxes" id="regionCheckboxes"></div></div>
-                <div class="form-group"><label>توضیحات</label><textarea id="pDescription"></textarea></div>
+                <div class="form-group"><label>جزئیات</label><textarea id="pDetails" rows="3"></textarea></div>
                 <div class="form-actions"><button type="button" class="btn btn-outline" onclick="closeModal('projectModal')">انصراف</button><button type="submit" class="btn btn-primary" id="projectSubmitBtn"><i class="fas fa-save"></i> ذخیره</button></div>
             </form>
         </div>
     </div>
 
-    <div class="modal-overlay" id="alertModal">
+    <!-- Financial Modal -->
+    <div class="modal-overlay" id="financialModal">
         <div class="modal-box">
-            <div class="modal-header"><h2>تعریف هشدار جدید</h2><button class="close-btn" onclick="closeModal('alertModal')">&times;</button></div>
-            <form id="alertForm" onsubmit="return saveAlert(event)">
-                <div class="form-group"><label>پروژه مورد نظر <span class="required">*</span></label><select id="aProjectId" required></select></div>
-                <div class="form-group"><label>تاریخ مبنا (شمسی) <span class="required">*</span></label><input type="text" id="aBaseDate" placeholder="۱۴۰۴/۰۱/۰۱" required></div>
-                <div class="form-group"><label>چند روز بعد از تاریخ مبنا هشدار فعال شود؟ <span class="required">*</span></label><input type="number" id="aDaysAfter" placeholder="مثلاً ۷" min="0" required></div>
-                <div class="form-group"><label>متن پیام هشدار (اختیاری)</label><input type="text" id="aMessage" placeholder="متن هشدار..."></div>
-                <div class="form-actions"><button type="button" class="btn btn-outline" onclick="closeModal('alertModal')">انصراف</button><button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> افزودن</button></div>
+            <div class="modal-header"><h2 id="financialModalTitle">افزودن رکورد مالی</h2><button class="close-btn" onclick="closeModal('financialModal')">&times;</button></div>
+            <form id="financialForm" onsubmit="return saveFinancial(event)">
+                <input type="hidden" id="editFinancialId" value="">
+                <div class="form-group"><label>نام پروژه *</label><input type="text" id="fName" required></div>
+                <div class="form-group"><label>توضیحات</label><input type="text" id="fDesc"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>مبلغ اولیه</label><input type="number" id="fInitial" placeholder="۰"></div>
+                    <div class="form-group"><label>مبلغ نهایی</label><input type="number" id="fFinal" placeholder="۰"></div>
+                </div>
+                <div class="form-group"><label>شماره و تاریخ پیمان</label><input type="text" id="fContract" placeholder="مثلاً 319457/1400"></div>
+                <div class="form-actions"><button type="button" class="btn btn-outline" onclick="closeModal('financialModal')">انصراف</button><button type="submit" class="btn btn-primary" id="financialSubmitBtn"><i class="fas fa-save"></i> ذخیره</button></div>
             </form>
         </div>
     </div>
 
-    <!-- Toast Message -->
-    <div id="toast" class="toast">
-        <i id="toastIcon" class="fas fa-check-circle"></i>
-        <span id="toastMessage">عملیات با موفقیت انجام شد</span>
+    <!-- Progress Edit Modal -->
+    <div class="modal-overlay" id="progressModal">
+        <div class="modal-box">
+            <div class="modal-header"><h2 id="progressModalTitle">ویرایش درصد پیشرفت</h2><button class="close-btn" onclick="closeModal('progressModal')">&times;</button></div>
+            <form id="progressForm" onsubmit="return saveProgress(event)">
+                <input type="hidden" id="editProgressId" value="">
+                <div class="form-group"><label>نام پروژه</label><input type="text" id="progName" readonly style="background:#f1f5f9;"></div>
+                <div class="form-group"><label>درصد پیشرفت (۰ تا ۱۰۰)</label>
+                    <input type="number" id="progPercent" min="0" max="100" required>
+                </div>
+                <div class="form-actions"><button type="button" class="btn btn-outline" onclick="closeModal('progressModal')">انصراف</button><button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> ذخیره</button></div>
+            </form>
+        </div>
     </div>
 
+    <div id="toast" class="toast"><i id="toastIcon" class="fas fa-check-circle"></i><span id="toastMessage">عملیات با موفقیت انجام شد</span></div>
+
     <!-- ==================== SCRIPTS ==================== -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
     <script>
         // ============================================================
-        // DATA LAYER with robust error handling
+        // DATA LAYER
         // ============================================================
-        const STORAGE_KEY = 'greenSpaceData';
+        const STORAGE_KEY = 'shirazGreenSpaceData';
 
-        function getDefaultData() {
-            return { projects: [], alerts: [], nextProjectId: 1, nextAlertId: 1 };
+        // Helper to get default progress items
+        function getDefaultProgressItems() {
+            return [
+                { id: 1, projectId: 4, name: 'فاز چهارم ممیزی و تهیه بانک اطلاعات شهری', percent: 20 },
+                { id: 2, projectId: 8, name: 'فاز سوم ممیزی و تهیه بانک اطلاعات GIS ارتفاعات', percent: 20 },
+                { id: 3, projectId: 5, name: 'بروزرسانی ممیزی‌ها (نظارت، اتصال به سامانه)', percent: 20 }
+            ];
         }
 
-        // Sample data for initial setup
         function getSampleData() {
             return {
                 projects: [
-                    { id: 1, name: 'توسعه فضای سبز ارتفاعات شمالی', contractor: 'شرکت پارک‌سازان', amount: 8500000000,
-                        area: 12.5, startDate: '۱۴۰۳/۰۲/۱۰', endDate: '۱۴۰۴/۰۸/۱۵', status: 'در حال اجرا',
-                        regions: ['منطقه ۱', 'ارتفاعات'], description: 'عملیات کاشت و آبیاری' },
-                    { id: 2, name: 'احیای پارک جنگلی غرب', contractor: 'سبزاندیشان', amount: 3200000000, area: 8.2,
-                        startDate: '۱۴۰۲/۱۱/۰۱', endDate: '۱۴۰۳/۰۶/۳۰', status: 'تکمیل‌شده', regions: ['منطقه ۳',
-                            'منطقه ۴'
-                        ], description: 'احیای کامل' },
-                    { id: 3, name: 'ساماندهی فضای سبز منطقه ۵', contractor: 'نوین‌باغ', amount: 1200000000, area: 4.0,
-                        startDate: '۱۴۰۳/۰۴/۲۰', status: 'متوقف‌شده', regions: ['منطقه ۵'],
-                        description: 'متوقف به دلیل کمبود اعتبار' },
-                    { id: 4, name: 'احداث بوستان محلی منطقه ۷', contractor: 'شهرداری منطقه ۷', amount: 2100000000,
-                        area: 3.8, startDate: '۱۴۰۳/۰۶/۰۱', endDate: '۱۴۰۳/۱۲/۲۰', status: 'در حال اجرا',
-                        regions: ['منطقه ۷', 'سایر'], description: 'شامل زمین بازی و فضای سبز' }
+                    { id: 1, name: 'فاز اول ممیزی و تهیه بانک اطلاعات GIS فضای سبز', type: 'شهری', status: 'تکمیل‌شده',
+                        regions: 'منطقه ۴ و ۸', amount: 20600000000, details: 'منطقه چهار و هشت به اتمام رسیده',
+                        desc: 'ممیزی درختان، چمن، گل‌کاری و بوستان‌های منطقه ۴ و ۸' },
+                    { id: 2, name: 'فاز دوم ممیزی و تهیه بانک اطلاعات GIS فضای سبز', type: 'شهری', status: 'تکمیل‌شده',
+                        regions: 'منطقه ۶ و بخشی از منطقه ۱۰', amount: 21679111872,
+                        details: 'منطقه شش و بخشی از منطقه ده به اتمام رسیده - مساحت ۸۰۰ هکتار',
+                        desc: 'ممیزی درختان، چمن، گل‌کاری و بوستان‌های منطقه ۶' },
+                    { id: 3, name: 'فاز سوم ممیزی و تهیه بانک اطلاعات GIS فضای سبز', type: 'شهری', status: 'تکمیل‌شده',
+                        regions: 'منطقه ۳ و ۱', amount: 16430719200,
+                        details: 'منطقه سه و یک به اتمام رسیده - مساحت ۷۰۰ هکتار',
+                        desc: 'ممیزی درختان، چمن، گل‌کاری و بوستان‌های منطقه ۳ و ۱' },
+                    { id: 4, name: 'فاز چهارم ممیزی و تهیه بانک اطلاعات شهری', type: 'شهری', status: 'در حال انجام',
+                        regions: 'منطقه ۲،۵،۷،۹،۱۰،۱۱', amount: 72891056640,
+                        details: 'مناطق دو، پنج، هفت، نه، ده، یازده در حال انجام',
+                        desc: 'فاز چهارم ممیزی و تهیه بانک اطلاعات GIS فضای سبز' },
+                    { id: 5, name: 'بروزرسانی ممیزی‌ها (نظارت، اتصال به سامانه)', type: 'شهری', status: 'بروزرسانی',
+                        regions: 'مناطق ۴،۸،۶،۳،۱', amount: 66354027600,
+                        details: 'مستمر در طول سال - بروزرسانی، نظارت و اتصال به سامانه بوستان و SDI',
+                        desc: 'بروزرسانی ممیزی‌های انجام‌شده' },
+                    { id: 6, name: 'فاز اول ممیزی و تهیه بانک اطلاعات GIS ارتفاعات', type: 'ارتفاعات', status: 'تکمیل‌شده',
+                        regions: 'گلستان، قندیلی، ده شیخ', amount: 4039635200,
+                        details: 'ارتفاعات شامل گلستان، قندیلی و ده شیخ به اتمام رسیده',
+                        desc: 'فاز اول ممیزی و تهیه بانک اطلاعات GIS ارتفاعات' },
+                    { id: 7, name: 'فاز دوم ممیزی و تهیه بانک اطلاعات GIS ارتفاعات', type: 'ارتفاعات', status: 'تکمیل‌شده',
+                        regions: 'کیان آباد، باباکوهی، کوه نور، بام سبز', amount: 11847222000,
+                        details: 'ارتفاعات کیان آباد، باباکوهی، کوه نور، بام سبز به اتمام رسیده',
+                        desc: 'فاز دوم ممیزی و تهیه بانک اطلاعات GIS ارتفاعات' },
+                    { id: 8, name: 'فاز سوم ممیزی و تهیه بانک اطلاعات GIS ارتفاعات', type: 'ارتفاعات', status: 'در حال انجام',
+                        regions: 'برف‌فروشان، دراک، انجیره، معراج', amount: 18675797640,
+                        details: 'برف‌فروشان، دراک، انجیره، معراج در حال انجام',
+                        desc: 'فاز سوم ممیزی و تهیه بانک اطلاعات GIS ارتفاعات' },
+                    { id: 9, name: 'ممیزی و تهیه بانک اطلاعات GIS تابلوهای شهدا', type: 'ویژه', status: 'تکمیل‌شده',
+                        regions: 'شهر شیراز', amount: 0, details: 'تمام تابلوها و تمثال مبارک شده ممیزی و بانک اطلاعات تهیه شده',
+                        desc: 'ممیزی و تهیه بانک اطلاعات GIS تابلوهای شهدای گرانقدر' },
+                    { id: 10, name: 'ممیزی و تهیه بانک اطلاعات GIS المان‌های هنری', type: 'ویژه', status: 'تکمیل‌شده',
+                        regions: 'شهر شیراز', amount: 0, details: 'تمامی المان‌های هنری شهری ممیزی و بانک اطلاعات تهیه شده',
+                        desc: 'ممیزی و تهیه بانک اطلاعات GIS المان‌های هنری شهری' }
                 ],
-                alerts: [],
-                nextProjectId: 5,
-                nextAlertId: 1
+                financials: [
+                    { id: 1, projectName: 'فاز اول ممیزی و تهیه بانک اطلاعات GIS فضای سبز',
+                        desc: 'منطقه چهار و هشت به اتمام رسیده', initialAmount: 20600000000, finalAmount: 1240000000,
+                        contract: '319457/1400 - 27/7/1400' },
+                    { id: 2, projectName: 'فاز دوم ممیزی و تهیه بانک اطلاعات GIS فضای سبز',
+                        desc: 'منطقه شش و بخشی از منطقه ده به اتمام رسیده - مساحت ۸۰۰ هکتار',
+                        initialAmount: 21679111872, finalAmount: 21679111872, contract: '495884 - 08/08/1403' },
+                    { id: 3, projectName: 'فاز سوم ممیزی و تهیه بانک اطلاعات GIS فضای سبز',
+                        desc: 'منطقه سه و یک به اتمام رسیده - مساحت ۷۰۰ هکتار', initialAmount: 16430719200,
+                        finalAmount: 20583399000, contract: '94826/1403' },
+                    { id: 4, projectName: 'فاز اول ممیزی و تهیه بانک اطلاعات GIS ارتفاعات',
+                        desc: 'ارتفاعات شامل گلستان، قندیلی و ده شیخ به اتمام رسیده', initialAmount: 4039635200,
+                        finalAmount: 1980907955, contract: '229434/99' },
+                    { id: 5, projectName: 'فاز دوم ممیزی و تهیه بانک اطلاعات GIS ارتفاعات',
+                        desc: 'ارتفاعات کیان آباد، باباکوهی، کوه نور، بام سبز به اتمام رسیده',
+                        initialAmount: 11847222000, finalAmount: 11847222000, contract: '93404 - 19/02/1403' },
+                    { id: 6, projectName: 'فاز سوم ممیزی و تهیه بانک اطلاعات GIS ارتفاعات',
+                        desc: 'برف‌فروشان، دراک، انجیره، معراج', initialAmount: 18675797640, finalAmount: 8590866914,
+                        contract: '43560 - 05/02/1405' },
+                    { id: 7, projectName: 'فاز چهارم ممیزی و تهیه بانک اطلاعات شهری',
+                        desc: 'مناطق دو، پنج، هفت، نه، ده، یازده', initialAmount: 72891056640, finalAmount: 65601950976,
+                        contract: '39032 - 02/02/1405' },
+                    { id: 8, projectName: 'بروزرسانی ممیزی‌ها (نظارت، اتصال به سامانه)',
+                        desc: 'مستمر در طول سال', initialAmount: 66354027600, finalAmount: 5308322080,
+                        contract: '105740 - 04/03/1405' }
+                ],
+                // پروژه‌های در حال انجام با درصد پیشرفت
+                progressItems: getDefaultProgressItems(),
+                nextProjectId: 11,
+                nextFinancialId: 9,
+                nextProgressId: 4
             };
         }
 
@@ -1792,40 +1899,34 @@
             try {
                 const raw = localStorage.getItem(STORAGE_KEY);
                 if (!raw) {
-                    // First time - initialize with sample data
-                    const sample = getSampleData();
-                    saveData(sample);
-                    return sample;
+                    const s = getSampleData();
+                    saveData(s);
+                    return s;
                 }
                 const data = JSON.parse(raw);
-                // Validate and fix structure
                 if (!data.projects) data.projects = [];
-                if (!data.alerts) data.alerts = [];
+                if (!data.financials) data.financials = [];
+                if (!data.progressItems || data.progressItems.length === 0) {
+                    // If missing or empty, set default progress items
+                    data.progressItems = getDefaultProgressItems();
+                }
                 if (!data.nextProjectId) data.nextProjectId = 1;
-                if (!data.nextAlertId) data.nextAlertId = 1;
+                if (!data.nextFinancialId) data.nextFinancialId = 1;
+                if (!data.nextProgressId) data.nextProgressId = 4;
                 return data;
             } catch (e) {
-                console.error('Error loading data:', e);
-                // If corrupted, reset to sample
-                const sample = getSampleData();
-                saveData(sample);
+                const s = getSampleData();
+                saveData(s);
                 showToast('خطا در خواندن داده‌ها، بازنشانی به حالت اولیه', 'error');
-                return sample;
+                return s;
             }
         }
 
         function saveData(data) {
-            try {
-                const json = JSON.stringify(data);
-                localStorage.setItem(STORAGE_KEY, json);
-                updateStorageStatus(true);
-                return true;
-            } catch (e) {
-                console.error('Error saving data:', e);
-                showToast('خطا در ذخیره‌سازی داده‌ها: ' + e.message, 'error');
-                updateStorageStatus(false);
-                return false;
-            }
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                updateStorageStatus(true); return true; } catch (e) {
+                showToast('خطا در ذخیره‌سازی: ' + e.message, 'error');
+                updateStorageStatus(false); return false; }
         }
 
         function updateStorageStatus(ok) {
@@ -1838,8 +1939,45 @@
             }
         }
 
+        function exportDataToFile() {
+            const data = loadData();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Shiraz_GreenSpace_Data.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('داده‌ها با موفقیت در فایل ذخیره شدند', 'success');
+        }
+
+        function importDataFromFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (!imported.projects || !imported.financials) { showToast('فایل نامعتبر است.', 'error'); return; }
+                    if (!imported.progressItems) imported.progressItems = getDefaultProgressItems();
+                    saveData(imported);
+                    showToast('داده‌ها با موفقیت بارگذاری شدند', 'success');
+                    refreshAll();
+                } catch (err) { showToast('خطا در خواندن فایل: ' + err.message, 'error'); }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function resetToSample() {
+            if (!confirm('آیا از بازنشانی همه داده‌ها به حالت اولیه مطمئن هستید؟')) return;
+            saveData(getSampleData());
+            showToast('داده‌ها بازنشانی شدند', 'success');
+            refreshAll();
+        }
+
         // ============================================================
-        // TOAST NOTIFICATION
+        // TOAST
         // ============================================================
         let toastTimeout = null;
 
@@ -1850,168 +1988,452 @@
             msg.textContent = message;
             icon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
             toast.className = 'toast ' + type;
-            // force reflow
             void toast.offsetWidth;
             toast.classList.add('show');
             clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
+            toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
         // ============================================================
-        // RESET TO SAMPLE DATA
+        // STATS INTERACTION
         // ============================================================
-        function resetToSample() {
-            if (!confirm('آیا از بازنشانی همه داده‌ها به حالت نمونه مطمئن هستید؟ تمام تغییرات شما از بین خواهد رفت.')) return;
-            const sample = getSampleData();
-            saveData(sample);
-            showToast('داده‌ها با موفقیت به حالت نمونه بازنشانی شدند', 'success');
-            // Refresh all views
-            renderPublicPage();
-            if (document.getElementById('appContainer').style.display !== 'none') {
-                renderDashboard();
-                renderProjects();
-                renderAlerts();
-                renderReports();
-                populateProjectReportSelect();
-                updateBadges();
+        function toggleStatInfo(el) {
+            el.classList.toggle('active');
+        }
+
+        // ============================================================
+        // FILTER PROJECTS
+        // ============================================================
+        function filterProjects(type) {
+            const sections = {
+                'شهری': 'urbanProjects',
+                'ارتفاعات': 'mountainProjects',
+                'ویژه': 'specialProjects'
+            };
+            const target = document.getElementById(sections[type]);
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                target.parentElement.querySelector('.section-title').style.color = '#2d7a3a';
+                setTimeout(() => {
+                    target.parentElement.querySelector('.section-title').style.color = '';
+                }, 1500);
             }
         }
 
         // ============================================================
-        // REGIONS
-        // ============================================================
-        const REGIONS = ['منطقه ۱', 'منطقه ۲', 'منطقه ۳', 'منطقه ۴', 'منطقه ۵', 'منطقه ۶', 'منطقه ۷', 'منطقه ۸', 'منطقه ۹', 'منطقه ۱۰',
-            'منطقه ۱۱', 'ارتفاعات', 'سایر'
-        ];
-
-        // ============================================================
-        // PUBLIC PAGE
+        // PUBLIC PAGE RENDER
         // ============================================================
         let pubStatusChart = null,
-            pubRegionChart = null;
-        let currentFilter = 'all';
-
-        function setFilter(filter) {
-            currentFilter = filter;
-            document.querySelectorAll('#filterTabs .tab').forEach(tab => {
-                tab.classList.toggle('active', tab.dataset.filter === filter);
-            });
-            renderPublicPage();
-        }
+            pubTypeChart = null;
+        let progressChartInstance = null;
+        let map = null,
+            mapAdmin = null;
 
         function renderPublicPage() {
             const data = loadData();
-            let projects = data.projects;
-            if (currentFilter !== 'all') {
-                projects = projects.filter(p => p.status === currentFilter);
-            }
+            const projects = data.projects;
+            const progressItems = data.progressItems || [];
 
-            const allProjects = data.projects;
-            const total = allProjects.length;
-            const running = allProjects.filter(p => p.status === 'در حال اجرا').length;
-            const complete = allProjects.filter(p => p.status === 'تکمیل‌شده').length;
-            const stopped = allProjects.filter(p => p.status === 'متوقف‌شده').length;
-            const regionsSet = new Set();
-            allProjects.forEach(p => (p.regions || []).forEach(r => regionsSet.add(r)));
+            const total = projects.length;
+            const done = projects.filter(p => p.status === 'تکمیل‌شده').length;
+            const progress = projects.filter(p => p.status === 'در حال انجام').length;
+            const update = projects.filter(p => p.status === 'بروزرسانی').length;
+            const special = projects.filter(p => p.type === 'ویژه').length;
 
             document.getElementById('pubTotal').textContent = total;
-            document.getElementById('pubRunning').textContent = running;
-            document.getElementById('pubComplete').textContent = complete;
-            document.getElementById('pubStopped').textContent = stopped;
-            document.getElementById('pubRegions').textContent = regionsSet.size;
+            document.getElementById('pubDone').textContent = done;
+            document.getElementById('pubProgress').textContent = progress;
+            document.getElementById('pubUpdate').textContent = update;
+            document.getElementById('pubSpecial').textContent = special;
 
-            const grid = document.getElementById('publicProjectGrid');
-            if (projects.length === 0) {
-                grid.innerHTML =
-                    `<div class="empty-state" style="grid-column:1/-1;"><i class="fas fa-map-marked-alt"></i><p>هیچ پروژه‌ای با این وضعیت یافت نشد.</p></div>`;
-            } else {
-                let html = '';
-                projects.slice().reverse().forEach(p => {
-                    const statusClass = p.status === 'در حال اجرا' ? 'running' : p.status === 'تکمیل‌شده' ? 'complete' :
-                        'stopped';
-                    const regionsStr = (p.regions || []).map(r => `<span class="tag">${r}</span>`).join('');
-                    html += `
-                        <div class="project-card">
-                            <div class="p-name"><i class="fas fa-map-pin" style="color:#2d7a3a;font-size:14px;margin-left:8px;"></i>${p.name || 'بدون نام'}</div>
-                            <div class="p-contractor"><i class="fas fa-building"></i> ${p.contractor || 'پیمانکار نامشخص'}</div>
-                            <div class="p-meta">
-                                <span><i class="fas fa-vector-square"></i> ${p.area || '۰'} هکتار</span>
-                                ${p.startDate ? `<span><i class="fas fa-calendar-alt"></i> شروع: ${p.startDate}</span>` : ''}
-                                ${p.endDate ? `<span><i class="fas fa-calendar-check"></i> پایان: ${p.endDate}</span>` : ''}
-                            </div>
-                            <div class="p-regions">${regionsStr}</div>
-                            <span class="p-status ${statusClass}">${p.status}</span>
-                        </div>
-                    `;
-                });
-                grid.innerHTML = html;
-            }
+            // AI
+            document.getElementById('aiTotal').textContent = total;
+            const urbanCount = projects.filter(p => p.type === 'شهری').length;
+            const mountainCount = projects.filter(p => p.type === 'ارتفاعات').length;
+            const specialCount = projects.filter(p => p.type === 'ویژه').length;
+            document.getElementById('aiUrban').innerHTML = 'شهری: <strong>' + urbanCount +
+                '</strong> پروژه (شامل ۱۱ منطقه)';
+            document.getElementById('aiMountain').innerHTML = 'ارتفاعات: <strong>' + mountainCount +
+                '</strong> پروژه (شامل ۸ منطقه)';
+            document.getElementById('aiSpecial').innerHTML = 'ویژه: <strong>' + specialCount +
+            '</strong> پروژه (تابلوهای شهدا و المان‌های هنری)';
+            document.getElementById('aiStatus').textContent = done;
+            document.getElementById('aiProgress').textContent = progress;
+            document.getElementById('aiUpdate').textContent = update;
 
-            // Status Chart
+            // Projects
+            const urban = projects.filter(p => p.type === 'شهری');
+            document.getElementById('urbanProjects').innerHTML = renderProjectCards(urban);
+            document.getElementById('urbanCount').textContent = urban.length;
+
+            const mountain = projects.filter(p => p.type === 'ارتفاعات');
+            document.getElementById('mountainProjects').innerHTML = renderProjectCards(mountain);
+            document.getElementById('mountainCount').textContent = mountain.length;
+
+            const specials = projects.filter(p => p.type === 'ویژه');
+            document.getElementById('specialProjects').innerHTML = renderProjectCards(specials);
+            document.getElementById('specialCount').textContent = specials.length;
+
+            // ===== PROGRESS SECTION =====
+            renderProgressSection(progressItems);
+
+            // Charts
             const ctx1 = document.getElementById('publicStatusChart').getContext('2d');
             if (pubStatusChart) pubStatusChart.destroy();
             pubStatusChart = new Chart(ctx1, {
                 type: 'doughnut',
-                data: {
-                    labels: ['در حال اجرا', 'تکمیل‌شده', 'متوقف‌شده'],
-                    datasets: [{ data: [running, complete, stopped], backgroundColor: ['#3b82f6', '#22c55e',
-                            '#ef4444'
-                        ], borderWidth: 0 }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { font: { size: 13, weight: '600' }, padding: 16 } }
-                    },
-                    cutout: '65%'
-                }
+                data: { labels: ['تکمیل‌شده', 'در حال انجام', 'بروزرسانی'],
+                    datasets: [{ data: [done, progress, update], backgroundColor: ['#22c55e', '#f59e0b',
+                            '#3b82f6'
+                        ], borderWidth: 0 }] },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } }, cutout: '65%' }
             });
 
-            // Region Chart
-            const regionMap = {};
-            allProjects.forEach(p => (p.regions || []).forEach(r => { regionMap[r] = (regionMap[r] || 0) + 1; }));
-            const sorted = Object.entries(regionMap).sort((a, b) => b[1] - a[1]).slice(0, 8);
-            const labels = sorted.map(t => t[0]);
-            const values = sorted.map(t => t[1]);
+            const ctx2 = document.getElementById('publicTypeChart').getContext('2d');
+            if (pubTypeChart) pubTypeChart.destroy();
+            const typeCount = { 'شهری': 0, 'ارتفاعات': 0, 'ویژه': 0 };
+            projects.forEach(p => { if (typeCount[p.type] !== undefined) typeCount[p.type]++; });
+            pubTypeChart = new Chart(ctx2, {
+                type: 'bar',
+                data: { labels: ['شهری', 'ارتفاعات', 'ویژه'],
+                    datasets: [{ label: 'تعداد پروژه', data: [typeCount['شهری'], typeCount['ارتفاعات'],
+                            typeCount['ویژه']
+                        ],
+                        backgroundColor: ['#0ea5e9', '#8b5cf6', '#ec4899'], borderRadius: 8,
+                    barThickness: 40 }] },
+                options: { responsive: true, plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } } }
+            });
 
-            const ctx2 = document.getElementById('publicRegionChart').getContext('2d');
-            if (pubRegionChart) pubRegionChart.destroy();
-            pubRegionChart = new Chart(ctx2, {
+            // Map
+            if (!map) {
+                map = L.map('map').setView([29.5918, 52.5837], 11);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+                addIrregularAreas(map);
+                loadKMLayers(map);
+            }
+        }
+
+        // ============================================================
+        // PROGRESS SECTION
+        // ============================================================
+        function renderProgressSection(progressItems) {
+            const container = document.getElementById('progressGrid');
+            if (!container) return;
+
+            if (!progressItems || progressItems.length === 0) {
+                // If no progress items, use defaults
+                const data = loadData();
+                if (data.progressItems && data.progressItems.length > 0) {
+                    progressItems = data.progressItems;
+                } else {
+                    container.innerHTML =
+                        `<div class="empty-state" style="grid-column:1/-1;text-align:center;padding:30px;color:#94a3b8;">
+                            <i class="fas fa-chart-simple" style="font-size:36px;opacity:0.4;"></i>
+                            <p>هیچ پروژه‌ای در حال انجام ثبت نشده است.</p>
+                        </div>`;
+                    if (progressChartInstance) { progressChartInstance.destroy();
+                        progressChartInstance = null; }
+                    return;
+                }
+            }
+
+            const data = loadData();
+            let html = '';
+            progressItems.forEach(item => {
+                const percent = Math.min(Math.max(item.percent || 0, 0), 100);
+                const project = data.projects.find(p => p.id === item.projectId);
+                // Build region and description from project or use provided details
+                let regionText = project ? project.regions : '—';
+                let descText = project ? project.desc : '';
+                let detailsText = project ? project.details : '';
+
+                html += `
+                    <div class="progress-card">
+                        <div class="p-name"><i class="fas fa-circle" style="color:#f59e0b;font-size:12px;"></i> ${item.name}</div>
+                        <div class="p-desc">${descText || detailsText || ''}</div>
+                        <div class="p-regions"><i class="fas fa-map-pin"></i> ${regionText}</div>
+                        <div class="progress-bar-wrap">
+                            <div class="progress-bar-fill" style="width:${percent}%;"></div>
+                        </div>
+                        <div class="progress-label">
+                            <span>پیشرفت</span>
+                            <span class="percent">${percent}%</span>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+
+            // ===== Progress Chart =====
+            const labels = progressItems.map(item => item.name.length > 20 ? item.name.slice(0, 18) + '…' : item.name);
+            const values = progressItems.map(item => Math.min(Math.max(item.percent || 0, 0), 100));
+            const colors = ['#f59e0b', '#f97316', '#eab308'];
+
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            if (progressChartInstance) progressChartInstance.destroy();
+            progressChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: labels.length ? labels : ['هیچ داده‌ای'],
-                    datasets: [{ label: 'تعداد پروژه', data: values.length ? values : [0],
-                        backgroundColor: ['#2d7a3a', '#3b82f6', '#0ea5e9', '#22c55e', '#f59e0b', '#8b5cf6',
-                            '#ec4899', '#14b8a6'
-                        ],
-                        borderRadius: 8,
-                        barThickness: 32
+                    labels: labels,
+                    datasets: [{
+                        label: 'درصد پیشرفت',
+                        data: values,
+                        backgroundColor: colors.slice(0, values.length),
+                        borderRadius: 6,
+                        barThickness: 36,
                     }]
                 },
                 options: {
                     responsive: true,
-                    plugins: { legend: { display: false } },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y + '%';
+                                }
+                            }
+                        }
+                    },
                     scales: {
-                        y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 12 } } },
-                        x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { stepSize: 20, font: { size: 11 } },
+                            grid: { color: '#e9edf2' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 11 }, maxRotation: 30, minRotation: 0 }
+                        }
                     }
                 }
             });
+        }
 
-            // Region Table
-            const tableContainer = document.getElementById('publicRegionTable');
-            if (Object.keys(regionMap).length === 0) {
-                tableContainer.innerHTML = `<p class="text-muted">هیچ منطقه‌ای ثبت نشده است.</p>`;
-            } else {
-                let html =
-                    `<table><thead><tr><th>منطقه</th><th>تعداد پروژه</th></tr></thead><tbody>`;
-                Object.entries(regionMap).sort((a, b) => b[1] - a[1]).forEach(([region, count]) => {
-                    html += `<tr><td><span class="region-badge">${region}</span></td><td><strong>${count}</strong></td></tr>`;
+        function renderProjectCards(projects) {
+            if (!projects || projects.length === 0) {
+                return `<div class="empty-state" style="grid-column:1/-1;text-align:center;padding:40px;color:#94a3b8;">
+                    <i class="fas fa-folder-open" style="font-size:48px;opacity:0.4;"></i><p>هیچ پروژه‌ای در این دسته یافت نشد.</p></div>`;
+            }
+            let html = '';
+            projects.forEach(p => {
+                const statusClass = p.status === 'تکمیل‌شده' ? 'done' : p.status === 'در حال انجام' ? 'progress' :
+                    'update';
+                const icon = p.type === 'شهری' ? 'fa-city' : p.type === 'ارتفاعات' ? 'fa-mountain' : 'fa-star';
+                html += `
+                    <div class="project-card">
+                        <div class="p-name"><i class="fas ${icon}"></i> ${p.name}</div>
+                        <div class="p-desc">${p.desc || ''}</div>
+                        <div class="p-meta">
+                            <span><i class="fas fa-map-pin"></i> ${p.regions || '—'}</span>
+                            ${p.details ? `<span><i class="fas fa-info-circle"></i> ${p.details}</span>` : ''}
+                        </div>
+                        <span class="p-status ${statusClass}">${p.status}</span>
+                    </div>
+                `;
+            });
+            return html;
+        }
+
+        // ============================================================
+        // MAP - IRREGULAR POLYGONS (مرکز شهر شیراز)
+        // ============================================================
+        function addIrregularAreas(mapInstance) {
+            const areas = [
+                // منطقه ۴ و ۸ (تکمیل‌شده) - شمال شرق مرکز
+                { coords: [
+                        [29.630, 52.595],
+                        [29.640, 52.600],
+                        [29.638, 52.615],
+                        [29.625, 52.620],
+                        [29.618, 52.608],
+                        [29.622, 52.598]
+                    ], status: 'done', label: 'منطقه ۴ و ۸ (تکمیل‌شده)' },
+                // منطقه ۶ (تکمیل‌شده) - مرکز
+                { coords: [
+                        [29.600, 52.570],
+                        [29.610, 52.575],
+                        [29.608, 52.590],
+                        [29.595, 52.595],
+                        [29.588, 52.582],
+                        [29.592, 52.572]
+                    ], status: 'done', label: 'منطقه ۶ (تکمیل‌شده)' },
+                // منطقه ۳ و ۱ (تکمیل‌شده) - جنوب غرب
+                { coords: [
+                        [29.575, 52.545],
+                        [29.585, 52.550],
+                        [29.582, 52.565],
+                        [29.570, 52.570],
+                        [29.562, 52.558],
+                        [29.568, 52.548]
+                    ], status: 'done', label: 'منطقه ۳ و ۱ (تکمیل‌شده)' },
+                // منطقه ۲،۵،۷،۹،۱۰،۱۱ (در حال انجام)
+                { coords: [
+                        [29.555, 52.530],
+                        [29.570, 52.535],
+                        [29.580, 52.550],
+                        [29.575, 52.570],
+                        [29.560, 52.575],
+                        [29.545, 52.560],
+                        [29.540, 52.540]
+                    ], status: 'progress', label: 'مناطق ۲،۵،۷،۹،۱۰،۱۱ (در حال انجام)' },
+                // بروزرسانی (مناطق ۴،۸،۶،۳،۱)
+                { coords: [
+                        [29.620, 52.585],
+                        [29.635, 52.590],
+                        [29.630, 52.610],
+                        [29.610, 52.615],
+                        [29.600, 52.600],
+                        [29.605, 52.585]
+                    ], status: 'update', label: 'بروزرسانی (مناطق ۴،۸،۶،۳،۱)' },
+                // ارتفاعات تکمیل‌شده: گلستان، قندیلی، ده شیخ
+                { coords: [
+                        [29.660, 52.480],
+                        [29.675, 52.490],
+                        [29.670, 52.510],
+                        [29.655, 52.515],
+                        [29.645, 52.500]
+                    ], status: 'done', label: 'گلستان، قندیلی، ده شیخ (تکمیل‌شده)' },
+                // ارتفاعات تکمیل‌شده: کیان آباد، باباکوهی، کوه نور، بام سبز
+                { coords: [
+                        [29.680, 52.560],
+                        [29.695, 52.570],
+                        [29.690, 52.590],
+                        [29.675, 52.595],
+                        [29.665, 52.580]
+                    ], status: 'done', label: 'کیان آباد، باباکوهی، کوه نور، بام سبز (تکمیل‌شده)' },
+                // ارتفاعات در حال انجام: برف‌فروشان، دراک، انجیره، معراج
+                { coords: [
+                        [29.710, 52.520],
+                        [29.725, 52.535],
+                        [29.720, 52.555],
+                        [29.705, 52.560],
+                        [29.695, 52.540]
+                    ], status: 'progress', label: 'برف‌فروشان، دراک، انجیره، معراج (در حال انجام)' },
+                // ویژه: تابلوهای شهدا و المان‌های هنری
+                { coords: [
+                        [29.590, 52.560],
+                        [29.600, 52.565],
+                        [29.595, 52.580],
+                        [29.582, 52.575],
+                        [29.580, 52.562]
+                    ], status: 'special', label: 'تابلوهای شهدا و المان‌های هنری (ویژه)' }
+            ];
+
+            areas.forEach(a => {
+                const color = a.status === 'done' ? '#22c55e' :
+                    a.status === 'progress' ? '#ef4444' :
+                    a.status === 'update' ? '#3b82f6' : '#8b5cf6';
+
+                const polygon = L.polygon(a.coords, {
+                    color: color,
+                    weight: 2.5,
+                    fillOpacity: 0.3,
+                    className: a.status === 'progress' ? 'blink' : ''
+                }).addTo(mapInstance);
+
+                polygon.bindPopup(`
+                    <strong>${a.label}</strong><br>
+                    وضعیت: ${a.status === 'done' ? '✅ تکمیل‌شده' : 
+                               a.status === 'progress' ? '🔄 در حال انجام' : 
+                               a.status === 'update' ? '🔵 بروزرسانی' : '⭐ ویژه'}
+                `);
+            });
+        }
+
+        // ============================================================
+        // KML HANDLERS
+        // ============================================================
+        function handleKMLUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const content = e.target.result;
+                    const data = loadData();
+                    const layerData = { id: Date.now(), name: file.name, type: file.name.endsWith('.kmz') ? 'kmz' :
+                            'kml', content: content, uploadedAt: new Date().toISOString() };
+                    if (!data.kmlLayers) data.kmlLayers = [];
+                    data.kmlLayers.push(layerData);
+                    saveData(data);
+                    displayKMLOnMap(map, content, file.name);
+                    displayKMLOnMap(mapAdmin, content, file.name);
+                    document.getElementById('kmlStatus').textContent = '✅ ' + file.name + ' آپلود شد';
+                    showToast('فایل ' + file.name + ' با موفقیت آپلود شد', 'success');
+                    renderKMLayerList();
+                } catch (err) { showToast('خطا در خواندن فایل: ' + err.message, 'error'); }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function displayKMLOnMap(mapInstance, kmlContent, fileName) {
+            if (mapInstance._kmlLayer) { mapInstance.removeLayer(mapInstance._kmlLayer); }
+            const blob = new Blob([kmlContent], { type: 'application/vnd.google-earth.kml+xml' });
+            const url = URL.createObjectURL(blob);
+            try {
+                const layer = omnivore.kml(url).on('ready', function() {
+                    this.eachLayer(function(l) { l.setStyle({ color: '#2d7a3a', weight: 2, fillOpacity: 0.2 }); });
+                    mapInstance.fitBounds(this.getBounds());
+                }).on('error', function(err) {
+                    showToast('فایل KML قابل شناسایی نیست.', 'error');
                 });
-                html += `</tbody></table>`;
-                tableContainer.innerHTML = html;
+                mapInstance._kmlLayer = layer;
+                mapInstance.addLayer(layer);
+                setTimeout(() => URL.revokeObjectURL(url), 10000);
+            } catch (e) { showToast('خطا در بارگذاری KML: ' + e.message, 'error'); }
+        }
+
+        function loadKMLayers(mapInstance) {
+            const data = loadData();
+            if (!data.kmlLayers || data.kmlLayers.length === 0) return;
+            const latest = data.kmlLayers[data.kmlLayers.length - 1];
+            if (latest) displayKMLOnMap(mapInstance, latest.content, latest.name);
+        }
+
+        function renderKMLayerList() {
+            const data = loadData();
+            const container = document.getElementById('kmlLayerList');
+            if (!container) return;
+            if (!data.kmlLayers || data.kmlLayers.length === 0) {
+                container.innerHTML = '<span style="color:#94a3b8;font-size:13px;">هیچ فایل KML/KMZ آپلود نشده است.</span>';
+                return;
+            }
+            let html = '';
+            data.kmlLayers.slice().reverse().forEach((layer, index) => {
+                html += `
+                    <span style="background:#f1f5f9;padding:4px 14px;border-radius:30px;font-size:13px;display:inline-flex;align-items:center;gap:6px;">
+                        <i class="fas fa-file" style="color:#2d7a3a;"></i> ${layer.name}
+                        <button onclick="removeKMLayer(${index})" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:14px;">×</button>
+                    </span>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function removeKMLayer(index) {
+            const data = loadData();
+            if (data.kmlLayers && data.kmlLayers.length > 0) {
+                const realIndex = data.kmlLayers.length - 1 - index;
+                data.kmlLayers.splice(realIndex, 1);
+                saveData(data);
+                if (map && map._kmlLayer) { map.removeLayer(map._kmlLayer);
+                    map._kmlLayer = null; }
+                if (mapAdmin && mapAdmin._kmlLayer) { mapAdmin.removeLayer(mapAdmin._kmlLayer);
+                    mapAdmin._kmlLayer = null; }
+                if (data.kmlLayers.length > 0) {
+                    const latest = data.kmlLayers[data.kmlLayers.length - 1];
+                    displayKMLOnMap(map, latest.content, latest.name);
+                    displayKMLOnMap(mapAdmin, latest.content, latest.name);
+                }
+                renderKMLayerList();
+                document.getElementById('kmlStatus').textContent = 'فایل حذف شد';
+                showToast('فایل KML حذف شد', 'success');
             }
         }
 
@@ -2021,18 +2443,10 @@
         function showLoginPage() {
             document.getElementById('loginPage').classList.add('show');
             document.getElementById('loginError').style.display = 'none';
-            document.getElementById('loginUser').value = '09176206606';
-            document.getElementById('loginPass').value = '82032';
         }
 
         function hideLoginPage() {
             document.getElementById('loginPage').classList.remove('show');
-        }
-
-        function quickLogin() {
-            document.getElementById('loginUser').value = '09176206606';
-            document.getElementById('loginPass').value = '82032';
-            document.getElementById('loginForm').dispatchEvent(new Event('submit'));
         }
 
         function handleLogin(e) {
@@ -2057,10 +2471,6 @@
                 document.getElementById('appContainer').style.display = 'none';
                 document.getElementById('publicPage').style.display = 'block';
                 renderPublicPage();
-                if (statusChartInstance) { statusChartInstance.destroy();
-                    statusChartInstance = null; }
-                if (regionChartInstance) { regionChartInstance.destroy();
-                    regionChartInstance = null; }
                 showToast('خروج از پنل مدیریت', 'success');
             }
         }
@@ -2078,7 +2488,7 @@
         // ============================================================
         let currentPage = 'dashboard';
         let statusChartInstance = null,
-            regionChartInstance = null;
+            typeChartInstance = null;
 
         function navigateTo(page) {
             currentPage = page;
@@ -2089,14 +2499,17 @@
             const navItem = document.querySelector(`.sidebar .nav-item[data-page="${page}"]`);
             if (navItem) navItem.classList.add('active');
 
-            const titles = { dashboard: 'داشبورد', projects: 'مدیریت پروژه‌ها', alerts: 'مدیریت هشدارها',
-                reports: 'گزارش‌ها', projectReport: 'گزارش پروژه' };
+            const titles = { dashboard: 'داشبورد مدیریت', projects: 'مدیریت پروژه‌ها', financial: 'جدول مالی',
+                progressAdmin: 'مدیریت پیشرفت', mapAdmin: 'نقشه و KML', reports: 'گزارش‌ها و آمار' };
             document.getElementById('pageTitle').innerHTML = titles[page] || page;
+
             if (page === 'dashboard') renderDashboard();
             else if (page === 'projects') renderProjects();
-            else if (page === 'alerts') renderAlerts();
+            else if (page === 'financial') renderFinancialTable();
+            else if (page === 'progressAdmin') renderProgressAdmin();
+            else if (page === 'mapAdmin') renderMapAdmin();
             else if (page === 'reports') renderReports();
-            else if (page === 'projectReport') populateProjectReportSelect();
+
             if (window.innerWidth <= 768) toggleSidebar(false);
         }
 
@@ -2105,46 +2518,13 @@
             document.getElementById('sidebarOverlay').classList.toggle('show', open);
         }
 
-        // ============================================================
-        // ADMIN INIT
-        // ============================================================
         function initAdmin() {
-            renderRegionCheckboxes();
-            populateProjectSelect();
-            populateProjectReportSelect();
             navigateTo('dashboard');
             updateBadges();
             updateStorageStatus(true);
+            renderKMLayerList();
             document.querySelectorAll('.modal-overlay').forEach(el => {
                 el.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('show'); });
-            });
-        }
-
-        // ============================================================
-        // REGION CHECKBOXES
-        // ============================================================
-        function renderRegionCheckboxes() {
-            const container = document.getElementById('regionCheckboxes');
-            container.innerHTML = '';
-            REGIONS.forEach(r => {
-                const label = document.createElement('label');
-                const cb = document.createElement('input');
-                cb.type = 'checkbox';
-                cb.value = r;
-                cb.className = 'region-cb';
-                label.appendChild(cb);
-                label.appendChild(document.createTextNode(' ' + r));
-                container.appendChild(label);
-            });
-        }
-
-        function getSelectedRegions() {
-            return Array.from(document.querySelectorAll('#regionCheckboxes .region-cb:checked')).map(cb => cb.value);
-        }
-
-        function setSelectedRegions(regions) {
-            document.querySelectorAll('#regionCheckboxes .region-cb').forEach(cb => {
-                cb.checked = regions.includes(cb.value);
             });
         }
 
@@ -2156,36 +2536,24 @@
             const data = loadData();
             const editId = document.getElementById('editProjectId').value;
             const name = document.getElementById('pName').value.trim();
-            const contractor = document.getElementById('pContractor').value.trim();
-            const amount = parseFloat(document.getElementById('pAmount').value) || 0;
-            const area = parseFloat(document.getElementById('pArea').value) || 0;
-            const startDate = document.getElementById('pStartDate').value.trim();
-            const endDate = document.getElementById('pEndDate').value.trim();
+            const desc = document.getElementById('pDesc').value.trim();
+            const type = document.getElementById('pType').value;
             const status = document.getElementById('pStatus').value;
-            const description = document.getElementById('pDescription').value.trim();
-            const regions = getSelectedRegions();
-            if (regions.length === 0) { alert('حداقل یک منطقه را انتخاب کنید.'); return false; }
-            const project = { name, contractor, amount, area, startDate, endDate, status, description, regions,
-                updatedAt: new Date().toISOString() };
+            const amount = parseFloat(document.getElementById('pAmount').value) || 0;
+            const regions = document.getElementById('pRegions').value.trim();
+            const details = document.getElementById('pDetails').value.trim();
+            if (!name) { alert('نام پروژه را وارد کنید.'); return false; }
+            const project = { name, desc, type, status, amount, regions, details };
             if (editId) {
                 const idx = data.projects.findIndex(p => p.id == editId);
                 if (idx !== -1) data.projects[idx] = { ...data.projects[idx], ...project };
-            } else {
-                project.id = data.nextProjectId++;
-                project.createdAt = new Date().toISOString();
-                data.projects.push(project);
-            }
-            if (saveData(data)) {
-                showToast(editId ? 'پروژه با موفقیت ویرایش شد' : 'پروژه جدید با موفقیت ثبت شد', 'success');
-            }
+            } else { project.id = data.nextProjectId++;
+                data.projects.push(project); }
+            if (saveData(data)) { showToast(editId ? 'پروژه ویرایش شد' : 'پروژه جدید ثبت شد', 'success'); }
             closeModal('projectModal');
             document.getElementById('projectForm').reset();
             document.getElementById('editProjectId').value = '';
-            renderProjects();
-            updateBadges();
-            populateProjectReportSelect();
-            if (currentPage === 'dashboard') renderDashboard();
-            renderPublicPage();
+            refreshAll();
             return false;
         }
 
@@ -2193,17 +2561,8 @@
             if (!confirm('حذف پروژه؟')) return;
             const data = loadData();
             data.projects = data.projects.filter(p => p.id != id);
-            data.alerts = data.alerts.filter(a => a.projectId != id);
-            if (saveData(data)) {
-                showToast('پروژه با موفقیت حذف شد', 'success');
-            }
-            renderProjects();
-            updateBadges();
-            populateProjectReportSelect();
-            if (currentPage === 'dashboard') renderDashboard();
-            if (currentPage === 'alerts') renderAlerts();
-            if (currentPage === 'reports') renderReports();
-            renderPublicPage();
+            if (saveData(data)) showToast('پروژه حذف شد', 'success');
+            refreshAll();
         }
 
         function editProject(id) {
@@ -2212,14 +2571,12 @@
             if (!p) return;
             document.getElementById('editProjectId').value = id;
             document.getElementById('pName').value = p.name || '';
-            document.getElementById('pContractor').value = p.contractor || '';
+            document.getElementById('pDesc').value = p.desc || '';
+            document.getElementById('pType').value = p.type || 'شهری';
+            document.getElementById('pStatus').value = p.status || 'تکمیل‌شده';
             document.getElementById('pAmount').value = p.amount || '';
-            document.getElementById('pArea').value = p.area || '';
-            document.getElementById('pStartDate').value = p.startDate || '';
-            document.getElementById('pEndDate').value = p.endDate || '';
-            document.getElementById('pStatus').value = p.status || 'در حال اجرا';
-            document.getElementById('pDescription').value = p.description || '';
-            setSelectedRegions(p.regions || []);
+            document.getElementById('pRegions').value = p.regions || '';
+            document.getElementById('pDetails').value = p.details || '';
             document.getElementById('projectModalTitle').textContent = 'ویرایش پروژه';
             document.getElementById('projectSubmitBtn').innerHTML = '<i class="fas fa-edit"></i> بروزرسانی';
             openModal('projectModal');
@@ -2230,7 +2587,6 @@
             document.getElementById('editProjectId').value = '';
             document.getElementById('projectModalTitle').textContent = 'ثبت پروژه جدید';
             document.getElementById('projectSubmitBtn').innerHTML = '<i class="fas fa-save"></i> ذخیره';
-            document.querySelectorAll('#regionCheckboxes .region-cb').forEach(cb => cb.checked = false);
             openModal('projectModal');
         }
 
@@ -2246,14 +2602,14 @@
                 return;
             }
             let html =
-                `<table><thead><tr><th>#</th><th>نام</th><th>پیمانکار</th><th>مبلغ (ریال)</th><th>مساحت</th><th>وضعیت</th><th>مناطق</th><th>عملیات</th></tr></thead><tbody>`;
+                `<table><thead><tr><th>#</th><th>نام</th><th>نوع</th><th>وضعیت</th><th>مناطق</th><th>مبلغ (ریال)</th><th>عملیات</th></tr></thead><tbody>`;
             data.projects.slice().reverse().forEach((p, i) => {
                 const idx = data.projects.length - i;
-                const sc = p.status === 'در حال اجرا' ? 'running' : p.status === 'تکمیل‌شده' ? 'complete' : 'stopped';
-                const rs = (p.regions || []).map(r => `<span class="region-tag">${r}</span>`).join('');
-                html += `<tr><td>${idx}</td><td><strong>${p.name || 'بدون نام'}</strong></td><td>${p.contractor || '-'}</td>
-                    <td>${p.amount ? p.amount.toLocaleString() : '۰'}</td><td>${p.area || '۰'}</td>
-                    <td><span class="status-badge ${sc}">${p.status}</span></td><td>${rs || '-'}</td>
+                const sc = p.status === 'تکمیل‌شده' ? 'done' : p.status === 'در حال انجام' ? 'progress' : 'update';
+                html += `<tr><td>${idx}</td><td><strong>${p.name || 'بدون نام'}</strong></td>
+                    <td><span class="status-badge ${p.type === 'شهری' ? 'done' : p.type === 'ارتفاعات' ? 'progress' : 'special'}">${p.type || '—'}</span></td>
+                    <td><span class="status-badge ${sc}">${p.status}</span></td>
+                    <td>${p.regions || '—'}</td><td>${p.amount ? p.amount.toLocaleString() : '۰'}</td>
                     <td><div class="action-btns"><button class="btn btn-warning btn-sm" onclick="editProject(${p.id})"><i class="fas fa-edit"></i></button>
                     <button class="btn btn-danger btn-sm" onclick="deleteProject(${p.id})"><i class="fas fa-trash"></i></button></div></td></tr>`;
             });
@@ -2262,127 +2618,239 @@
         }
 
         // ============================================================
-        // ALERTS
+        // FINANCIAL CRUD
         // ============================================================
-        function populateProjectSelect() {
-            const data = loadData();
-            const sel = document.getElementById('aProjectId');
-            sel.innerHTML = '';
-            data.projects.forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p.id;
-                opt.textContent = p.name || 'پروژه #' + p.id;
-                sel.appendChild(opt);
-            });
-            if (data.projects.length === 0) {
-                const opt = document.createElement('option');
-                opt.value = '';
-                opt.textContent = '— هیچ پروژه‌ای موجود نیست —';
-                sel.appendChild(opt);
-            }
-        }
-
-        function saveAlert(e) {
+        function saveFinancial(e) {
             e.preventDefault();
             const data = loadData();
-            const projectId = parseInt(document.getElementById('aProjectId').value);
-            const baseDate = document.getElementById('aBaseDate').value.trim();
-            const daysAfter = parseInt(document.getElementById('aDaysAfter').value) || 0;
-            const message = document.getElementById('aMessage').value.trim();
-            if (!projectId) { alert('پروژه را انتخاب کنید.'); return false; }
-            if (!baseDate) { alert('تاریخ مبنا را وارد کنید.'); return false; }
-            const project = data.projects.find(p => p.id === projectId);
-            data.alerts.push({
-                id: data.nextAlertId++,
-                projectId,
-                projectName: project ? project.name : 'پروژه #' + projectId,
-                baseDate,
-                daysAfter,
-                message: message || `هشدار برای پروژه "${project ? project.name : ''}"`,
-                createdAt: new Date().toISOString()
-            });
-            if (saveData(data)) {
-                showToast('هشدار جدید با موفقیت ثبت شد', 'success');
-            }
-            closeModal('alertModal');
-            document.getElementById('alertForm').reset();
-            renderAlerts();
-            updateBadges();
+            const editId = document.getElementById('editFinancialId').value;
+            const projectName = document.getElementById('fName').value.trim();
+            const desc = document.getElementById('fDesc').value.trim();
+            const initialAmount = parseFloat(document.getElementById('fInitial').value) || 0;
+            const finalAmount = parseFloat(document.getElementById('fFinal').value) || 0;
+            const contract = document.getElementById('fContract').value.trim();
+            if (!projectName) { alert('نام پروژه را وارد کنید.'); return false; }
+            const financial = { projectName, desc, initialAmount, finalAmount, contract };
+            if (editId) {
+                const idx = data.financials.findIndex(f => f.id == editId);
+                if (idx !== -1) data.financials[idx] = { ...data.financials[idx], ...financial };
+            } else { financial.id = data.nextFinancialId++;
+                data.financials.push(financial); }
+            if (saveData(data)) { showToast(editId ? 'رکورد مالی ویرایش شد' : 'رکورد مالی جدید ثبت شد', 'success'); }
+            closeModal('financialModal');
+            document.getElementById('financialForm').reset();
+            document.getElementById('editFinancialId').value = '';
+            refreshAll();
             return false;
         }
 
-        function deleteAlert(id) {
-            if (!confirm('حذف هشدار؟')) return;
+        function deleteFinancial(id) {
+            if (!confirm('حذف رکورد مالی؟')) return;
             const data = loadData();
-            data.alerts = data.alerts.filter(a => a.id != id);
-            if (saveData(data)) {
-                showToast('هشدار با موفقیت حذف شد', 'success');
-            }
-            renderAlerts();
-            updateBadges();
+            data.financials = data.financials.filter(f => f.id != id);
+            if (saveData(data)) showToast('رکورد مالی حذف شد', 'success');
+            refreshAll();
         }
 
-        function renderAlerts() {
+        function editFinancial(id) {
             const data = loadData();
-            const container = document.getElementById('alertsList');
-            const label = document.getElementById('alertCountLabel');
-            label.textContent = data.alerts.length + ' هشدار';
-            if (data.alerts.length === 0) {
+            const f = data.financials.find(f => f.id == id);
+            if (!f) return;
+            document.getElementById('editFinancialId').value = id;
+            document.getElementById('fName').value = f.projectName || '';
+            document.getElementById('fDesc').value = f.desc || '';
+            document.getElementById('fInitial').value = f.initialAmount || '';
+            document.getElementById('fFinal').value = f.finalAmount || '';
+            document.getElementById('fContract').value = f.contract || '';
+            document.getElementById('financialModalTitle').textContent = 'ویرایش رکورد مالی';
+            document.getElementById('financialSubmitBtn').innerHTML = '<i class="fas fa-edit"></i> بروزرسانی';
+            openModal('financialModal');
+        }
+
+        function openFinancialModal() {
+            document.getElementById('financialForm').reset();
+            document.getElementById('editFinancialId').value = '';
+            document.getElementById('financialModalTitle').textContent = 'افزودن رکورد مالی';
+            document.getElementById('financialSubmitBtn').innerHTML = '<i class="fas fa-save"></i> ذخیره';
+            openModal('financialModal');
+        }
+
+        function renderFinancialTable() {
+            const data = loadData();
+            const container = document.getElementById('financialTable');
+            const label = document.getElementById('financialCountLabel');
+            const count = data.financials.length;
+            label.textContent = count + ' رکورد';
+            if (count === 0) {
                 container.innerHTML =
-                    `<div class="empty-state"><i class="fas fa-bell-slash"></i><p>هیچ هشداری تعریف نشده است.</p></div>`;
+                    `<div class="empty-state"><i class="fas fa-money-bill-wave"></i><p>هیچ رکورد مالی ثبت نشده است.</p></div>`;
                 return;
             }
-            let html = '';
-            data.alerts.slice().reverse().forEach(a => {
-                html += `<div class="alert-item"><div class="alert-info"><strong>${a.projectName}</strong>
-                    <span class="date-badge"><i class="fas fa-calendar-alt"></i> ${a.baseDate}</span>
-                    <span class="date-badge"><i class="fas fa-clock"></i> ${a.daysAfter} روز بعد</span>
-                    <span>${a.message || ''}</span></div>
-                    <div class="alert-actions"><button class="btn btn-danger btn-sm" onclick="deleteAlert(${a.id})"><i class="fas fa-trash"></i></button></div></div>`;
+            let html =
+                `<table><thead><tr><th>#</th><th>نام پروژه</th><th>توضیحات</th><th>مبلغ اولیه</th><th>مبلغ نهایی</th><th>شماره پیمان</th><th>عملیات</th></tr></thead><tbody>`;
+            data.financials.slice().reverse().forEach((f, i) => {
+                const idx = data.financials.length - i;
+                html += `<tr><td>${idx}</td><td><strong>${f.projectName}</strong></td><td>${f.desc || '—'}</td>
+                    <td>${f.initialAmount ? f.initialAmount.toLocaleString() : '۰'}</td>
+                    <td>${f.finalAmount ? f.finalAmount.toLocaleString() : '۰'}</td>
+                    <td>${f.contract || '—'}</td>
+                    <td><div class="action-btns"><button class="btn btn-warning btn-sm" onclick="editFinancial(${f.id})"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteFinancial(${f.id})"><i class="fas fa-trash"></i></button></div></td></tr>`;
             });
+            html += `</tbody></table>`;
             container.innerHTML = html;
         }
 
-        function openAlertModal() {
-            populateProjectSelect();
-            document.getElementById('alertForm').reset();
-            openModal('alertModal');
+        // ============================================================
+        // PROGRESS ADMIN
+        // ============================================================
+        function renderProgressAdmin() {
+            const data = loadData();
+            const container = document.getElementById('progressAdminTable');
+            const label = document.getElementById('progressCountLabel');
+            const items = data.progressItems || [];
+            label.textContent = items.length + ' پروژه';
+
+            if (items.length === 0) {
+                container.innerHTML =
+                    `<div class="empty-state"><i class="fas fa-chart-simple"></i><p>هیچ پروژه‌ای در حال انجام ثبت نشده است.</p></div>`;
+                return;
+            }
+
+            let html =
+                `<table><thead><tr><th>#</th><th>نام پروژه</th><th>درصد پیشرفت</th><th>عملیات</th></tr></thead><tbody>`;
+            items.slice().reverse().forEach((item, i) => {
+                const idx = items.length - i;
+                const percent = Math.min(Math.max(item.percent || 0, 0), 100);
+                html += `<tr>
+                    <td>${idx}</td>
+                    <td><strong>${item.name}</strong></td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div class="progress-bar-wrap" style="flex:1;max-width:150px;">
+                                <div class="progress-bar-fill" style="width:${percent}%;background:linear-gradient(90deg,#f59e0b,#f97316);"></div>
+                            </div>
+                            <span style="font-weight:700;color:#f59e0b;min-width:40px;">${percent}%</span>
+                        </div>
+                    </td>
+                    <td><div class="action-btns">
+                        <button class="btn btn-warning btn-sm" onclick="editProgress(${item.id})"><i class="fas fa-edit"></i></button>
+                    </div></td>
+                </tr>`;
+            });
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+            document.getElementById('progressBadge').textContent = items.length;
+        }
+
+        function editProgress(id) {
+            const data = loadData();
+            const item = data.progressItems.find(p => p.id === id);
+            if (!item) return;
+            document.getElementById('editProgressId').value = id;
+            document.getElementById('progName').value = item.name;
+            document.getElementById('progPercent').value = item.percent || 0;
+            document.getElementById('progressModalTitle').textContent = 'ویرایش درصد پیشرفت';
+            openModal('progressModal');
+        }
+
+        function saveProgress(e) {
+            e.preventDefault();
+            const data = loadData();
+            const id = parseInt(document.getElementById('editProgressId').value);
+            const percent = parseFloat(document.getElementById('progPercent').value) || 0;
+            const item = data.progressItems.find(p => p.id === id);
+            if (!item) { showToast('پروژه یافت نشد.', 'error'); return false; }
+            item.percent = Math.min(Math.max(percent, 0), 100);
+            if (saveData(data)) {
+                showToast('درصد پیشرفت با موفقیت به‌روزرسانی شد', 'success');
+            }
+            closeModal('progressModal');
+            refreshAll();
+            return false;
         }
 
         // ============================================================
-        // REPORTS (financial summary)
+        // MAP ADMIN
+        // ============================================================
+        function renderMapAdmin() {
+            if (!mapAdmin) {
+                mapAdmin = L.map('mapAdmin').setView([29.5918, 52.5837], 11);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(mapAdmin);
+                addIrregularAreas(mapAdmin);
+                const data = loadData();
+                if (data.kmlLayers && data.kmlLayers.length > 0) {
+                    const latest = data.kmlLayers[data.kmlLayers.length - 1];
+                    if (latest) displayKMLOnMap(mapAdmin, latest.content, latest.name);
+                }
+                renderKMLayerList();
+            } else { mapAdmin.invalidateSize(); }
+        }
+
+        // ============================================================
+        // REPORTS
         // ============================================================
         function renderReports() {
             const data = loadData();
             const projects = data.projects;
+            const financials = data.financials;
+            const totalInitial = financials.reduce((s, f) => s + (f.initialAmount || 0), 0);
+            const totalFinal = financials.reduce((s, f) => s + (f.finalAmount || 0), 0);
             const totalAmount = projects.reduce((s, p) => s + (p.amount || 0), 0);
-            const totalArea = projects.reduce((s, p) => s + (p.area || 0), 0);
-            const running = projects.filter(p => p.status === 'در حال اجرا').length;
-            const complete = projects.filter(p => p.status === 'تکمیل‌شده').length;
-            const stopped = projects.filter(p => p.status === 'متوقف‌شده').length;
+            const done = projects.filter(p => p.status === 'تکمیل‌شده').length;
+            const progress = projects.filter(p => p.status === 'در حال انجام').length;
+            const update = projects.filter(p => p.status === 'بروزرسانی').length;
+
             document.getElementById('financialSummary').innerHTML = `
-                <div class="report-item"><div class="r-label">کل پروژه‌ها</div><div class="r-value">${projects.length}</div></div>
-                <div class="report-item"><div class="r-label">مجموع مبلغ</div><div class="r-value">${totalAmount.toLocaleString()} ریال</div></div>
-                <div class="report-item"><div class="r-label">مجموع مساحت</div><div class="r-value">${totalArea.toFixed(2)} هکتار</div></div>
-                <div class="report-item"><div class="r-label">در حال اجرا</div><div class="r-value" style="color:#1d4ed8;">${running}</div></div>
-                <div class="report-item"><div class="r-label">تکمیل شده</div><div class="r-value" style="color:#15803d;">${complete}</div></div>
-                <div class="report-item"><div class="r-label">متوقف شده</div><div class="r-value" style="color:#b91c1c;">${stopped}</div></div>
+                <div class="report-item" style="background:#f8fafc;padding:12px 16px;border-radius:14px;text-align:center;">
+                    <div class="r-label" style="font-size:13px;color:#64748b;">کل پروژه‌ها</div>
+                    <div class="r-value" style="font-size:20px;font-weight:700;">${projects.length}</div>
+                </div>
+                <div class="report-item" style="background:#f8fafc;padding:12px 16px;border-radius:14px;text-align:center;">
+                    <div class="r-label" style="font-size:13px;color:#64748b;">مجموع مبلغ پروژه‌ها</div>
+                    <div class="r-value" style="font-size:20px;font-weight:700;">${totalAmount.toLocaleString()} ریال</div>
+                </div>
+                <div class="report-item" style="background:#f8fafc;padding:12px 16px;border-radius:14px;text-align:center;">
+                    <div class="r-label" style="font-size:13px;color:#64748b;">مجموع مبلغ اولیه</div>
+                    <div class="r-value" style="font-size:20px;font-weight:700;">${totalInitial.toLocaleString()} ریال</div>
+                </div>
+                <div class="report-item" style="background:#f8fafc;padding:12px 16px;border-radius:14px;text-align:center;">
+                    <div class="r-label" style="font-size:13px;color:#64748b;">مجموع مبلغ نهایی</div>
+                    <div class="r-value" style="font-size:20px;font-weight:700;">${totalFinal.toLocaleString()} ریال</div>
+                </div>
+                <div class="report-item" style="background:#f8fafc;padding:12px 16px;border-radius:14px;text-align:center;">
+                    <div class="r-label" style="font-size:13px;color:#64748b;">تکمیل‌شده</div>
+                    <div class="r-value" style="font-size:20px;font-weight:700;color:#15803d;">${done}</div>
+                </div>
+                <div class="report-item" style="background:#f8fafc;padding:12px 16px;border-radius:14px;text-align:center;">
+                    <div class="r-label" style="font-size:13px;color:#64748b;">در حال انجام</div>
+                    <div class="r-value" style="font-size:20px;font-weight:700;color:#b45309;">${progress}</div>
+                </div>
+                <div class="report-item" style="background:#f8fafc;padding:12px 16px;border-radius:14px;text-align:center;">
+                    <div class="r-label" style="font-size:13px;color:#64748b;">بروزرسانی</div>
+                    <div class="r-value" style="font-size:20px;font-weight:700;color:#1d4ed8;">${update}</div>
+                </div>
             `;
+
             const regionMap = {};
-            projects.forEach(p => (p.regions || []).forEach(r => {
-                if (!regionMap[r]) regionMap[r] = { count: 0, amount: 0, area: 0 };
-                regionMap[r].count += 1;
-                regionMap[r].amount += (p.amount || 0);
-                regionMap[r].area += (p.area || 0);
-            }));
+            projects.forEach(p => {
+                if (p.regions) {
+                    const r = p.regions;
+                    if (!regionMap[r]) regionMap[r] = { count: 0, amount: 0 };
+                    regionMap[r].count += 1;
+                    regionMap[r].amount += (p.amount || 0);
+                }
+            });
             let html =
-                `<table><thead><tr><th>منطقه</th><th>تعداد</th><th>مجموع مبلغ (ریال)</th><th>مجموع مساحت (هکتار)</th></tr></thead><tbody>`;
-            if (Object.keys(regionMap).length === 0) html +=
-                `<tr><td colspan="4" style="text-align:center;color:#94a3b8;">هیچ داده‌ای موجود نیست</td></tr>`;
-            else {
+                `<table><thead><tr><th>منطقه / محدوده</th><th>تعداد</th><th>مجموع مبلغ (ریال)</th></tr></thead><tbody>`;
+            if (Object.keys(regionMap).length === 0) {
+                html += `<tr><td colspan="3" style="text-align:center;color:#94a3b8;">هیچ داده‌ای موجود نیست</td></tr>`;
+            } else {
                 Object.entries(regionMap).sort((a, b) => b[1].count - a[1].count).forEach(([region, vals]) => {
                     html +=
-                        `<tr><td><strong>${region}</strong></td><td>${vals.count}</td><td>${vals.amount.toLocaleString()}</td><td>${vals.area.toFixed(2)}</td></tr>`;
+                        `<tr><td><strong>${region}</strong></td><td>${vals.count}</td><td>${vals.amount.toLocaleString()}</td></tr>`;
                 });
             }
             html += `</tbody></table>`;
@@ -2395,91 +2863,10 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'گزارش_پروژه‌ها.json';
+            a.download = 'Shiraz_Report.json';
             a.click();
             URL.revokeObjectURL(url);
-            showToast('گزارش با موفقیت خروجی گرفته شد', 'success');
-        }
-
-        // ============================================================
-        // PROJECT REPORT (per project)
-        // ============================================================
-        function populateProjectReportSelect() {
-            const data = loadData();
-            const sel = document.getElementById('projectReportSelect');
-            const currentVal = sel.value;
-            sel.innerHTML = '<option value="">— انتخاب کنید —</option>';
-            data.projects.forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p.id;
-                opt.textContent = p.name || 'پروژه #' + p.id;
-                sel.appendChild(opt);
-            });
-            if (currentVal && data.projects.some(p => p.id == currentVal)) {
-                sel.value = currentVal;
-            }
-            renderProjectReport();
-        }
-
-        function renderProjectReport() {
-            const container = document.getElementById('projectReportContainer');
-            const sel = document.getElementById('projectReportSelect');
-            const projectId = parseInt(sel.value);
-            if (!projectId) {
-                container.innerHTML =
-                    `<div class="empty-state"><i class="fas fa-file-alt"></i><p>لطفاً یک پروژه را انتخاب کنید تا گزارش کامل آن نمایش داده شود.</p></div>`;
-                return;
-            }
-            const data = loadData();
-            const project = data.projects.find(p => p.id === projectId);
-            if (!project) {
-                container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>پروژه یافت نشد.</p></div>`;
-                return;
-            }
-            const projectAlerts = data.alerts.filter(a => a.projectId === projectId);
-
-            const statusClass = project.status === 'در حال اجرا' ? 'running' : project.status === 'تکمیل‌شده' ? 'complete' :
-                'stopped';
-            const regionsStr = (project.regions || []).map(r => `<span class="tag">${r}</span>`).join('، ');
-
-            let html = `
-                <div class="report-header">
-                    <h3><i class="fas fa-map-pin" style="color:#2d7a3a;"></i> ${project.name || 'بدون نام'}</h3>
-                    <span class="status-badge ${statusClass}" style="font-size:16px;padding:4px 20px;">${project.status}</span>
-                </div>
-                <div class="info-grid">
-                    <div class="info-item"><div class="label">پیمانکار / شرکت مجری</div><div class="value">${project.contractor || '—'}</div></div>
-                    <div class="info-item"><div class="label">مبلغ کل قرارداد</div><div class="value">${project.amount ? project.amount.toLocaleString() : '۰'} <span style="font-size:13px;color:#64748b;">ریال</span></div></div>
-                    <div class="info-item"><div class="label">مساحت کل</div><div class="value">${project.area || '۰'} <span style="font-size:13px;color:#64748b;">هکتار</span></div></div>
-                    <div class="info-item"><div class="label">تاریخ شروع</div><div class="value">${project.startDate || '—'}</div></div>
-                    <div class="info-item"><div class="label">تاریخ پایان</div><div class="value">${project.endDate || '—'}</div></div>
-                    <div class="info-item"><div class="label">مناطق اجرایی</div><div class="value">${regionsStr || '—'}</div></div>
-                </div>
-                ${project.description ? `<div style="background:#f8fafc;padding:12px 16px;border-radius:14px;margin-bottom:16px;"><span style="font-weight:600;">توضیحات:</span> ${project.description}</div>` : ''}
-                <div class="alerts-section">
-                    <h4><i class="fas fa-bell" style="color:#f59e0b;"></i> هشدارهای مرتبط (${projectAlerts.length})</h4>
-                    ${projectAlerts.length === 0 ? `<p class="text-muted">هیچ هشداری برای این پروژه تعریف نشده است.</p>` : ''}
-                    ${projectAlerts.map(a => `
-                        <div class="alert-item" style="margin-bottom:6px;">
-                            <div class="alert-info">
-                                <span class="date-badge"><i class="fas fa-calendar-alt"></i> ${a.baseDate}</span>
-                                <span class="date-badge"><i class="fas fa-clock"></i> ${a.daysAfter} روز بعد</span>
-                                <span>${a.message || ''}</span>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            container.innerHTML = html;
-        }
-
-        function printProjectReport() {
-            const sel = document.getElementById('projectReportSelect');
-            if (!sel.value) {
-                alert('لطفاً ابتدا یک پروژه را انتخاب کنید.');
-                return;
-            }
-            window.print();
+            showToast('گزارش خروجی گرفته شد', 'success');
         }
 
         // ============================================================
@@ -2489,18 +2876,18 @@
             const data = loadData();
             const projects = data.projects;
             const total = projects.length;
-            const running = projects.filter(p => p.status === 'در حال اجرا').length;
-            const complete = projects.filter(p => p.status === 'تکمیل‌شده').length;
-            const stopped = projects.filter(p => p.status === 'متوقف‌شده').length;
+            const done = projects.filter(p => p.status === 'تکمیل‌شده').length;
+            const progress = projects.filter(p => p.status === 'در حال انجام').length;
+            const update = projects.filter(p => p.status === 'بروزرسانی').length;
+            const special = projects.filter(p => p.type === 'ویژه').length;
             const totalAmount = projects.reduce((s, p) => s + (p.amount || 0), 0);
-            const totalArea = projects.reduce((s, p) => s + (p.area || 0), 0);
 
             document.getElementById('statTotal').textContent = total;
+            document.getElementById('statDone').textContent = done;
+            document.getElementById('statProgress').textContent = progress;
+            document.getElementById('statUpdate').textContent = update;
+            document.getElementById('statSpecial').textContent = special;
             document.getElementById('statAmount').textContent = totalAmount.toLocaleString();
-            document.getElementById('statArea').textContent = totalArea.toFixed(2);
-            document.getElementById('statRunning').textContent = running;
-            document.getElementById('statComplete').textContent = complete;
-            document.getElementById('statStopped').textContent = stopped;
 
             const recent = [...projects].reverse().slice(0, 5);
             const rc = document.getElementById('recentProjectsTable');
@@ -2509,61 +2896,72 @@
                     `<div class="empty-state"><i class="fas fa-folder-open"></i><p>هیچ پروژه‌ای ثبت نشده است.</p></div>`;
             } else {
                 let html =
-                    `<table><thead><tr><th>نام</th><th>وضعیت</th><th>مناطق</th><th>مبلغ (ریال)</th></tr></thead><tbody>`;
+                    `<table><thead><tr><th>نام</th><th>نوع</th><th>وضعیت</th><th>مناطق</th></tr></thead><tbody>`;
                 recent.forEach(p => {
-                    const sc = p.status === 'در حال اجرا' ? 'running' : p.status === 'تکمیل‌شده' ? 'complete' :
-                        'stopped';
-                    const rs = (p.regions || []).slice(0, 3).map(r => `<span class="region-tag">${r}</span>`).join('');
+                    const sc = p.status === 'تکمیل‌شده' ? 'done' : p.status === 'در حال انجام' ? 'progress' :
+                        'update';
                     html +=
-                        `<tr><td><strong>${p.name || 'بدون نام'}</strong></td><td><span class="status-badge ${sc}">${p.status}</span></td><td>${rs || '-'}</td><td>${p.amount ? p.amount.toLocaleString() : '۰'}</td></tr>`;
+                        `<tr><td><strong>${p.name || 'بدون نام'}</strong></td><td>${p.type || '—'}</td><td><span class="status-badge ${sc}">${p.status}</span></td><td>${p.regions || '—'}</td></tr>`;
                 });
                 html += `</tbody></table>`;
                 rc.innerHTML = html;
             }
 
-            // Charts
-            const sc = { 'در حال اجرا': running, 'تکمیل‌شده': complete, 'متوقف‌شده': stopped };
             const ctx1 = document.getElementById('statusChart').getContext('2d');
             if (statusChartInstance) statusChartInstance.destroy();
             statusChartInstance = new Chart(ctx1, {
                 type: 'doughnut',
-                data: { labels: ['در حال اجرا', 'تکمیل‌شده', 'متوقف‌شده'],
-                    datasets: [{ data: [sc['در حال اجرا'], sc['تکمیل‌شده'], sc['متوقف‌شده']],
-                        backgroundColor: ['#3b82f6', '#22c55e', '#ef4444'], borderWidth: 0 }] },
-                options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 12 } } } },
-                    cutout: '65%' }
+                data: { labels: ['تکمیل‌شده', 'در حال انجام', 'بروزرسانی'],
+                    datasets: [{ data: [done, progress, update], backgroundColor: ['#22c55e', '#f59e0b',
+                            '#3b82f6'
+                        ], borderWidth: 0 }] },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } }, cutout: '65%' }
             });
 
-            const regionMap = {};
-            projects.forEach(p => (p.regions || []).forEach(r => { regionMap[r] = (regionMap[r] || 0) + 1; }));
-            const sorted = Object.entries(regionMap).sort((a, b) => b[1] - a[1]).slice(0, 8);
-            const ctx2 = document.getElementById('regionChart').getContext('2d');
-            if (regionChartInstance) regionChartInstance.destroy();
-            regionChartInstance = new Chart(ctx2, {
+            const typeCount = { 'شهری': 0, 'ارتفاعات': 0, 'ویژه': 0 };
+            projects.forEach(p => { if (typeCount[p.type] !== undefined) typeCount[p.type]++; });
+            const ctx2 = document.getElementById('typeChart').getContext('2d');
+            if (typeChartInstance) typeChartInstance.destroy();
+            typeChartInstance = new Chart(ctx2, {
                 type: 'bar',
-                data: { labels: sorted.length ? sorted.map(t => t[0]) : ['هیچ داده‌ای'],
-                    datasets: [{ label: 'تعداد پروژه', data: sorted.length ? sorted.map(t => t[1]) : [0],
-                        backgroundColor: ['#2d7a3a', '#3b82f6', '#0ea5e9', '#22c55e', '#f59e0b', '#8b5cf6',
-                            '#ec4899', '#14b8a6'
-                        ],
-                        borderRadius: 8, barThickness: 28 }] },
+                data: { labels: ['شهری', 'ارتفاعات', 'ویژه'],
+                    datasets: [{ label: 'تعداد', data: [typeCount['شهری'], typeCount['ارتفاعات'], typeCount[
+                            'ویژه'
+                        ]],
+                        backgroundColor: ['#0ea5e9', '#8b5cf6', '#ec4899'], borderRadius: 8,
+                    barThickness: 40 }] },
                 options: { responsive: true, plugins: { legend: { display: false } },
                     scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } } }
             });
         }
 
         // ============================================================
-        // BADGES & MODALS
+        // HELPERS
         // ============================================================
         function updateBadges() {
             const data = loadData();
             document.getElementById('projectCountBadge').textContent = data.projects.length;
-            document.getElementById('alertCountBadge').textContent = data.alerts.length;
+            document.getElementById('financialBadge').textContent = data.financials ? data.financials.length : 0;
+            document.getElementById('progressBadge').textContent = data.progressItems ? data.progressItems.length : 0;
         }
 
         function openModal(id) { document.getElementById(id).classList.add('show'); }
 
         function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+        function refreshAll() {
+            renderPublicPage();
+            if (document.getElementById('appContainer').style.display !== 'none') {
+                renderDashboard();
+                renderProjects();
+                renderFinancialTable();
+                renderProgressAdmin();
+                renderReports();
+                updateBadges();
+                renderKMLayerList();
+                if (currentPage === 'mapAdmin') renderMapAdmin();
+            }
+        }
 
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
@@ -2573,20 +2971,22 @@
         });
 
         // ============================================================
-        // INIT ON LOAD
+        // INIT
         // ============================================================
         window.onload = function() {
-            // First, ensure data exists
             const data = loadData();
-            // If data is empty (shouldn't happen due to loadData fallback), but just in case
-            if (data.projects.length === 0) {
-                const sample = getSampleData();
-                saveData(sample);
+            if (data.projects.length === 0 || data.financials.length === 0) {
+                saveData(getSampleData());
+            }
+            // Ensure progress items exist
+            if (!data.progressItems || data.progressItems.length === 0) {
+                data.progressItems = getDefaultProgressItems();
+                saveData(data);
             }
             renderPublicPage();
             updateStorageStatus(true);
+            renderKMLayerList();
         };
     </script>
-
 </body>
 </html>
